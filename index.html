@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse.SG | Singapore Net Worth & Goals Dashboard</title>
+  <!-- Google Fonts: Outfit and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <span class="logo-text">Pulse.SG</span>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <button class="nav-item active" onclick="switchTab('dashboard')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" onclick="switchTab('banks')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="6.01" y2="15"/><line x1="10" y1="15" x2="10.01" y2="15"/></svg>
+          Bank Accounts
+        </button>
+        <button class="nav-item" onclick="switchTab('cpf')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          CPF Planner
+        </button>
+        <button class="nav-item" onclick="switchTab('household')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Household Panel
+        </button>
+        <button class="nav-item" onclick="switchTab('assets')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Assets & Loans
+        </button>
+        <button class="nav-item" onclick="switchTab('simulator')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          Goal Simulator
+        </button>
+        <button class="nav-item" onclick="switchTab('expense')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Expense Advisor
+        </button>
+        <button class="nav-item" onclick="switchTab('chat')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          PulseAI Coach
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-preset-container">
+          <label class="preset-label">Financial Profile</label>
+          <select id="profile-preset-select" class="preset-select" onchange="loadProfilePreset(this.value)">
+            <option value="custom">👤 Custom Profile</option>
+            <option value="graduate">🎓 Starter Graduate (Age 24)</option>
+            <option value="family">🏡 HDB Family (Age 32)</option>
+            <option value="midcareer">📈 Mid-Career Fast-Track (Age 42)</option>
+            <option value="fire">🔥 FIRE Accumulator (Age 35)</option>
+            <option value="retiree">🌅 Golden Age Retiree (Age 58)</option>
+          </select>
+        </div>
+        <div class="sidebar-data-actions">
+           <button class="btn-data-action" onclick="exportData()" title="Export JSON Profile">
+             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+             Export
+           </button>
+           <button class="btn-data-action" onclick="triggerImport()" title="Import JSON Profile">
+             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+             Import
+           </button>
+           <button class="btn-data-action btn-danger-action" onclick="resetData()" title="Reset All Variables">
+             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+             Reset
+           </button>
+           <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importData(event)">
+        </div>
+        <div class="user-profile">
+          <div class="user-avatar">SG</div>
+          <div class="user-info">
+            <span class="user-name">Singaporean Saver</span>
+            <span class="user-status">Wealth Accumulator</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-title-container">
+          <h1 class="header-title" id="page-title">Financial Pulse</h1>
+          <p class="header-subtitle" id="page-subtitle">Track, compound, and simulate your path to wealth.</p>
+        </div>
+        
+        <div class="header-actions">
+          <div class="quick-stat-pill" id="household-mode-pill" style="display: none; background: rgba(16, 185, 129, 0.15); border-color: var(--color-success);">
+            <span class="stat-label text-success">Combined View Active</span>
+          </div>
+          <div class="quick-stat-pill">
+            <span class="stat-label">Net Worth:</span>
+            <span class="stat-value text-accent" id="global-networth">S$ 0</span>
+          </div>
+          <div class="quick-stat-pill">
+            <span class="stat-label">Goal Progress:</span>
+            <span class="stat-value text-success" id="global-progress">0%</span>
+          </div>
+          <div class="theme-selector-container">
+            <select id="theme-select" class="theme-select" onchange="changeTheme(this.value)">
+              <option value="theme-obsidian">🔮 Obsidian Purple</option>
+              <option value="theme-emerald">🏆 Midnight Emerald</option>
+              <option value="theme-cyberpunk">⚡ Cyberpunk Neon</option>
+              <option value="theme-navy">🌌 Nordic Navy</option>
+              <option value="theme-aura">🌈 Minimalist Aura</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <!-- Global Goal Progress Bar -->
+      <div class="goal-progress-banner">
+        <div class="goal-progress-meta">
+          <span>Goal Progress: <strong id="goal-progress-text">S$ 0 of S$ 1,000,000</strong></span>
+          <span id="goal-eta-text">Eta: Age --</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="global-progress-bar" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Content Views (Tabs) -->
+      <div class="content-view-container">
+
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="view-dashboard" class="content-view active">
+          <!-- Summary Cards Grid -->
+          <div class="grid grid-4">
+            <div class="card glass-card stat-card" style="--border-glow: var(--primary-glow);">
+              <div class="card-header-compact">
+                <span class="card-label">Total Assets</span>
+                <span class="card-icon text-primary">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </span>
+              </div>
+              <h2 class="card-value" id="card-total-assets">S$ 0</h2>
+              <p class="card-hint" id="card-total-assets-sub">Cash + CPF + Investments + Property</p>
+            </div>
+
+            <div class="card glass-card stat-card" style="--border-glow: var(--danger-glow);">
+              <div class="card-header-compact">
+                <span class="card-label">Total Liabilities</span>
+                <span class="card-icon text-danger">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                </span>
+              </div>
+              <h2 class="card-value" id="card-total-liabilities">S$ 0</h2>
+              <p class="card-hint" id="card-total-liabilities-sub">Mortgages + Car Loans + Other Debts</p>
+            </div>
+
+            <div class="card glass-card stat-card" style="--border-glow: var(--accent-glow);">
+              <div class="card-header-compact">
+                <span class="card-label">Net Worth</span>
+                <span class="card-icon text-accent">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </span>
+              </div>
+              <h2 class="card-value" id="card-networth">S$ 0</h2>
+              <p class="card-hint" id="card-networth-sub">Assets minus Liabilities</p>
+            </div>
+
+            <div class="card glass-card stat-card" style="--border-glow: var(--success-glow);">
+              <div class="card-header-compact">
+                <span class="card-label">CPF Balance</span>
+                <span class="card-icon text-success">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+              </div>
+              <h2 class="card-value" id="card-cpf-total">S$ 0</h2>
+              <p class="card-hint" id="card-cpf-breakdown">OA: S$0 | SA: S$0 | MA: S$0</p>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="grid grid-3-1">
+            <!-- Net Worth Projection Chart Card -->
+            <div class="card glass-card chart-card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Net Worth Projection</h3>
+                  <p class="card-subtitle">Compounded growth model to age 85 (Cash, Investments, Property, CPF)</p>
+                </div>
+                <div class="chart-legend">
+                  <span class="legend-dot" style="background-color: var(--color-accent)"></span> Net Worth
+                  <span class="legend-dot" style="background-color: var(--color-success)"></span> CPF
+                  <span class="legend-dot" style="background-color: var(--color-primary)"></span> Liquid Assets
+                  <span class="legend-dot" style="background-color: #64748b; border-style: dashed;"></span> Goal Target
+                </div>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="projectionChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Asset Allocation / Milestones -->
+            <div class="flex-column gap-4">
+              <!-- Doughnut Allocation Chart Card -->
+              <div class="card glass-card" style="padding: 1.25rem;">
+                <h3 class="card-title" style="margin-bottom: 1rem;">Asset Allocation</h3>
+                <div class="chart-wrapper-mini">
+                  <canvas id="allocationChart"></canvas>
+                </div>
+              </div>
+
+              <!-- Milestones Card -->
+              <div class="card glass-card milestone-card">
+                <h3 class="card-title">Milestones Tracker</h3>
+                <div class="milestones-list" id="milestones-container">
+                  <!-- Generated dynamically via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. BANK ACCOUNTS VIEW -->
+        <section id="view-banks" class="content-view">
+          <div class="section-header-banner">
+            <h2>Singapore Bank Accounts</h2>
+            <p>Input balances and customize criteria for high-yield savings accounts to model exact interest returns.</p>
+          </div>
+
+          <div class="grid grid-2">
+            
+            <!-- DBS Group -->
+            <div class="card glass-card bank-card" id="bank-dbs">
+              <div class="bank-card-header">
+                <div class="bank-identity">
+                  <span class="bank-avatar dbs-avatar">DBS</span>
+                  <div>
+                    <h3 class="bank-name">DBS Bank</h3>
+                    <p class="bank-subtext">Multiplier & Standard Accounts</p>
+                  </div>
+                </div>
+                <div class="bank-balance-badge" id="dbs-badge">S$ 0</div>
+              </div>
+              <div class="bank-card-body">
+                <div class="input-group">
+                  <label for="dbs-balance">Current Balance (S$)</label>
+                  <input type="number" id="dbs-balance" class="input-field bank-balance-input" value="10000" placeholder="Enter DBS Balance" oninput="updateCalculations()">
+                </div>
+                
+                <div class="toggle-section">
+                  <label class="switch-container">
+                    <input type="checkbox" id="dbs-multiplier-active" onchange="toggleMultiplierInputs('dbs')">
+                    <span class="switch-slider"></span>
+                    <span class="switch-label">Optimize via <strong>DBS Multiplier</strong> rules</span>
+                  </label>
+                </div>
+
+                <div class="multiplier-inputs" id="dbs-multiplier-panel" style="display:none;">
+                  <p class="input-hint">Select your eligible categories (Salary/Dividend credit is mandatory + 1 other transaction category):</p>
+                  <div class="checkbox-grid">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="dbs-m-salary" onchange="updateCalculations()"> Salary Credit (Mandatory)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="dbs-m-card" onchange="updateCalculations()"> Credit Card Spend
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="dbs-m-home" onchange="updateCalculations()"> Home Loan Installment
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="dbs-m-invest" onchange="updateCalculations()"> Invest or Insure
+                    </label>
+                  </div>
+                  <div class="input-group mini" style="margin-top: 0.75rem;">
+                    <label for="dbs-m-amount">Total Transaction Volume (S$/mo)</label>
+                    <input type="number" id="dbs-m-amount" class="input-field-small" value="3000" oninput="updateCalculations()">
+                  </div>
+                </div>
+
+                <div class="bank-yield-summary">
+                  <div>Computed Interest Rate: <strong id="dbs-rate">0.05%</strong></div>
+                  <div>Est. Annual Interest: <strong id="dbs-interest">S$ 5</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- UOB Group -->
+            <div class="card glass-card bank-card" id="bank-uob">
+              <div class="bank-card-header">
+                <div class="bank-identity">
+                  <span class="bank-avatar uob-avatar">UOB</span>
+                  <div>
+                    <h3 class="bank-name">United Overseas Bank</h3>
+                    <p class="bank-subtext">UOB One Account Tiers</p>
+                  </div>
+                </div>
+                <div class="bank-balance-badge" id="uob-badge">S$ 0</div>
+              </div>
+              <div class="bank-card-body">
+                <div class="input-group">
+                  <label for="uob-balance">Current Balance (S$)</label>
+                  <input type="number" id="uob-balance" class="input-field bank-balance-input" value="15000" placeholder="Enter UOB Balance" oninput="updateCalculations()">
+                </div>
+
+                <div class="toggle-section">
+                  <label class="switch-container">
+                    <input type="checkbox" id="uob-one-active" onchange="toggleMultiplierInputs('uob')">
+                    <span class="switch-slider"></span>
+                    <span class="switch-label">Optimize via <strong>UOB One Account</strong></span>
+                  </label>
+                </div>
+
+                <div class="multiplier-inputs" id="uob-one-panel" style="display:none;">
+                  <p class="input-hint">Select criteria met (Min. S$500 card spend is required):</p>
+                  <div class="checkbox-grid">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="uob-one-card" onchange="updateCalculations()"> Spend min. S$500 on UOB Cards
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="uob-one-salary" onchange="updateCalculations()"> Credit Salary (min. S$1,600)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="uob-one-giro" onchange="updateCalculations()"> Make 3 GIRO Transactions
+                    </label>
+                  </div>
+                </div>
+
+                <div class="bank-yield-summary">
+                  <div>Computed Interest Rate: <strong id="uob-rate">0.05%</strong></div>
+                  <div>Est. Annual Interest: <strong id="uob-interest">S$ 7</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- OCBC Group -->
+            <div class="card glass-card bank-card" id="bank-ocbc">
+              <div class="bank-card-header">
+                <div class="bank-identity">
+                  <span class="bank-avatar ocbc-avatar">OCBC</span>
+                  <div>
+                    <h3 class="bank-name">OCBC Bank</h3>
+                    <p class="bank-subtext">OCBC 360 Account</p>
+                  </div>
+                </div>
+                <div class="bank-balance-badge" id="ocbc-badge">S$ 0</div>
+              </div>
+              <div class="bank-card-body">
+                <div class="input-group">
+                  <label for="ocbc-balance">Current Balance (S$)</label>
+                  <input type="number" id="ocbc-balance" class="input-field bank-balance-input" value="0" placeholder="Enter OCBC Balance" oninput="updateCalculations()">
+                </div>
+
+                <div class="toggle-section">
+                  <label class="switch-container">
+                    <input type="checkbox" id="ocbc-360-active" onchange="toggleMultiplierInputs('ocbc')">
+                    <span class="switch-slider"></span>
+                    <span class="switch-label">Optimize via <strong>OCBC 360</strong></span>
+                  </label>
+                </div>
+
+                <div class="multiplier-inputs" id="ocbc-360-panel" style="display:none;">
+                  <p class="input-hint">Select active badges (applied to first S$100,000 balance):</p>
+                  <div class="checkbox-grid">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="ocbc-b-salary" onchange="updateCalculations()"> Salary Credit (min. S$1,800)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="ocbc-b-save" onchange="updateCalculations()"> Save (increase balance by S$500/mo)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="ocbc-b-spend" onchange="updateCalculations()"> Spend S$500 on OCBC cards
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="ocbc-b-insure" onchange="updateCalculations()"> Insure (eligible product purchase)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="ocbc-b-invest" onchange="updateCalculations()"> Invest (eligible investment product)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="ocbc-b-grow" onchange="updateCalculations()"> Grow (average S$200k balance)
+                    </label>
+                  </div>
+                </div>
+
+                <div class="bank-yield-summary">
+                  <div>Computed Interest Rate: <strong id="ocbc-rate">0.05%</strong></div>
+                  <div>Est. Annual Interest: <strong id="ocbc-interest">S$ 0</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Standard Chartered Bank -->
+            <div class="card glass-card bank-card" id="bank-scb">
+              <div class="bank-card-header">
+                <div class="bank-identity">
+                  <span class="bank-avatar scb-avatar">SCB</span>
+                  <div>
+                    <h3 class="bank-name">Standard Chartered</h3>
+                    <p class="bank-subtext">Bonus$aver & JumpStart Accounts</p>
+                  </div>
+                </div>
+                <div class="bank-balance-badge" id="scb-badge">S$ 0</div>
+              </div>
+              <div class="bank-card-body">
+                <div class="input-group">
+                  <label for="scb-balance">Current Balance (S$)</label>
+                  <input type="number" id="scb-balance" class="input-field bank-balance-input" value="0" placeholder="Enter SCB Balance" oninput="updateCalculations()">
+                </div>
+
+                <div class="toggle-section">
+                  <label class="switch-container">
+                    <input type="checkbox" id="scb-bonus-active" onchange="toggleMultiplierInputs('scb')">
+                    <span class="switch-slider"></span>
+                    <span class="switch-label">Optimize via <strong>SC Bonus$aver</strong></span>
+                  </label>
+                </div>
+
+                <div class="multiplier-inputs" id="scb-bonus-panel" style="display:none;">
+                  <p class="input-hint">Select criteria met (up to S$100,000 balance):</p>
+                  <div class="checkbox-grid">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="scb-b-salary" onchange="updateCalculations()"> Salary (min S$3,000 credit)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="scb-b-spend500" onchange="updateCalculations()"> Card Spend min. S$500
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="scb-b-spend2000" onchange="updateCalculations()"> Card Spend min. S$2,000
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="scb-b-bills" onchange="updateCalculations()"> Bill Payment (min S$50 x3 GIRO)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="scb-b-invest" onchange="updateCalculations()"> Invest or Insure
+                    </label>
+                  </div>
+                </div>
+
+                <div class="bank-yield-summary">
+                  <div>Computed Interest Rate: <strong id="scb-rate">0.05%</strong></div>
+                  <div>Est. Annual Interest: <strong id="scb-interest">S$ 0</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- HSBC Bank -->
+            <div class="card glass-card bank-card" id="bank-hsbc">
+              <div class="bank-card-header">
+                <div class="bank-identity">
+                  <span class="bank-avatar hsbc-avatar">HSBC</span>
+                  <div>
+                    <h3 class="bank-name">HSBC</h3>
+                    <p class="bank-subtext">Everyday Global Account / Savings</p>
+                  </div>
+                </div>
+                <div class="bank-balance-badge" id="hsbc-badge">S$ 0</div>
+              </div>
+              <div class="bank-card-body">
+                <div class="input-group">
+                  <label for="hsbc-balance">Current Balance (S$)</label>
+                  <input type="number" id="hsbc-balance" class="input-field bank-balance-input" value="0" placeholder="Enter HSBC Balance" oninput="updateCalculations()">
+                </div>
+                <div class="input-group">
+                  <label for="hsbc-custom-rate">Custom Annual Interest Rate (%)</label>
+                  <input type="number" id="hsbc-custom-rate" class="input-field-small" value="0.05" step="0.05" oninput="updateCalculations()">
+                </div>
+                <div class="bank-yield-summary">
+                  <div>Interest Rate: <strong id="hsbc-rate">0.05%</strong></div>
+                  <div>Est. Annual Interest: <strong id="hsbc-interest">S$ 0</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Citibank -->
+            <div class="card glass-card bank-card" id="bank-citi">
+              <div class="bank-card-header">
+                <div class="bank-identity">
+                  <span class="bank-avatar citi-avatar">CITI</span>
+                  <div>
+                    <h3 class="bank-name">Citibank</h3>
+                    <p class="bank-subtext">Interest Booster / Maxiport</p>
+                  </div>
+                </div>
+                <div class="bank-balance-badge" id="citi-badge">S$ 0</div>
+              </div>
+              <div class="bank-card-body">
+                <div class="input-group">
+                  <label for="citi-balance">Current Balance (S$)</label>
+                  <input type="number" id="citi-balance" class="input-field bank-balance-input" value="0" placeholder="Enter Citi Balance" oninput="updateCalculations()">
+                </div>
+                <div class="input-group">
+                  <label for="citi-custom-rate">Custom Annual Interest Rate (%)</label>
+                  <input type="number" id="citi-custom-rate" class="input-field-small" value="0.05" step="0.05" oninput="updateCalculations()">
+                </div>
+                <div class="bank-yield-summary">
+                  <div>Interest Rate: <strong id="citi-rate">0.05%</strong></div>
+                  <div>Est. Annual Interest: <strong id="citi-interest">S$ 0</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Maybank -->
+            <div class="card glass-card bank-card" id="bank-maybank">
+              <div class="bank-card-header">
+                <div class="bank-identity">
+                  <span class="bank-avatar maybank-avatar">MAY</span>
+                  <div>
+                    <h3 class="bank-name">Maybank</h3>
+                    <p class="bank-subtext">SaveUp / Privilege Savings</p>
+                  </div>
+                </div>
+                <div class="bank-balance-badge" id="maybank-badge">S$ 0</div>
+              </div>
+              <div class="bank-card-body">
+                <div class="input-group">
+                  <label for="maybank-balance">Current Balance (S$)</label>
+                  <input type="number" id="maybank-balance" class="input-field bank-balance-input" value="0" placeholder="Enter Maybank Balance" oninput="updateCalculations()">
+                </div>
+                <div class="input-group">
+                  <label for="maybank-custom-rate">Custom Annual Interest Rate (%)</label>
+                  <input type="number" id="maybank-custom-rate" class="input-field-small" value="0.05" step="0.05" oninput="updateCalculations()">
+                </div>
+                <div class="bank-yield-summary">
+                  <div>Interest Rate: <strong id="maybank-rate">0.05%</strong></div>
+                  <div>Est. Annual Interest: <strong id="maybank-interest">S$ 0</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bank of China -->
+            <div class="card glass-card bank-card" id="bank-boc">
+              <div class="bank-card-header">
+                <div class="bank-identity">
+                  <span class="bank-avatar boc-avatar">BOC</span>
+                  <div>
+                    <h3 class="bank-name">Bank of China</h3>
+                    <p class="bank-subtext">BOC SmartSaver Accounts</p>
+                  </div>
+                </div>
+                <div class="bank-balance-badge" id="boc-badge">S$ 0</div>
+              </div>
+              <div class="bank-card-body">
+                <div class="input-group">
+                  <label for="boc-balance">Current Balance (S$)</label>
+                  <input type="number" id="boc-balance" class="input-field bank-balance-input" value="0" placeholder="Enter BOC Balance" oninput="updateCalculations()">
+                </div>
+                <div class="input-group">
+                  <label for="boc-custom-rate">Custom Annual Interest Rate (%)</label>
+                  <input type="number" id="boc-custom-rate" class="input-field-small" value="0.05" step="0.05" oninput="updateCalculations()">
+                </div>
+                <div class="bank-yield-summary">
+                  <div>Interest Rate: <strong id="boc-rate">0.05%</strong></div>
+                  <div>Est. Annual Interest: <strong id="boc-interest">S$ 0</strong></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 3. CPF PLANNER VIEW -->
+        <section id="view-cpf" class="content-view">
+          <div class="section-header-banner">
+            <h2>Singapore CPF Planner</h2>
+            <p>Plan your Ordinary Account (OA), Special Account (SA), Medisave Account (MA), and Retirement Account (RA). Includes current 2026 interest and ceiling updates.</p>
+          </div>
+
+          <div class="grid grid-1-2">
+            <!-- CPF Inputs Side -->
+            <div class="card glass-card">
+              <h3 class="card-title">CPF Profile & Settings</h3>
+              
+              <div class="input-group">
+                <label for="cpf-age">Current Age</label>
+                <input type="number" id="cpf-age" class="input-field" value="30" min="16" max="85" oninput="updateCalculations()">
+              </div>
+
+              <div class="input-group">
+                <label for="cpf-salary">Monthly Income (S$)</label>
+                <input type="number" id="cpf-salary" class="input-field" value="6500" min="0" oninput="updateCalculations()">
+                <div class="input-meta-hint">Capped at Ordinary Wage ceiling of <strong>S$ 8,000 / month</strong> (2026 update)</div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="input-group">
+                <label for="cpf-oa-bal">Ordinary Account (OA) Balance (S$)</label>
+                <input type="number" id="cpf-oa-bal" class="input-field" value="45000" min="0" oninput="updateCalculations()">
+                <div class="input-meta-hint">Interest rate: 2.50% p.a.</div>
+              </div>
+
+              <div class="input-group">
+                <label for="cpf-sa-bal">Special Account (SA) Balance (S$)</label>
+                <input type="number" id="cpf-sa-bal" class="input-field" value="35000" min="0" oninput="updateCalculations()">
+                <div class="input-meta-hint">Interest rate: 4.08% p.a. (2026 rate)</div>
+              </div>
+
+              <div class="input-group">
+                <label for="cpf-ma-bal">Medisave Account (MA) Balance (S$)</label>
+                <input type="number" id="cpf-ma-bal" class="input-field" value="25000" min="0" oninput="updateCalculations()">
+                <div class="input-meta-hint">Interest rate: 4.08% p.a. Capped at Basic Healthcare Sum (BHS).</div>
+              </div>
+
+              <div class="input-group" id="ra-bal-wrapper" style="display:none;">
+                <label for="cpf-ra-bal">Retirement Account (RA) Balance (S$)</label>
+                <input type="number" id="cpf-ra-bal" class="input-field" value="0" min="0" oninput="updateCalculations()">
+                <div class="input-meta-hint">Formed at Age 55. Interest rate: 4.08% p.a.</div>
+              </div>
+            </div>
+
+            <!-- CPF Contribution & Growth Summary -->
+            <div class="flex-column gap-4">
+              <!-- Contribution rates -->
+              <div class="card glass-card">
+                <h3 class="card-title">Monthly CPF Contributions</h3>
+                <div class="cpf-split-container">
+                  <div class="cpf-split-bar">
+                    <div class="split-portion employee-portion" id="split-employee-bar" style="width: 54%;">Employee (20%)</div>
+                    <div class="split-portion employer-portion" id="split-employer-bar" style="width: 46%;">Employer (17%)</div>
+                  </div>
+                  <div class="cpf-split-labels">
+                    <div>Your Contribution: <strong id="cpf-employee-contrib">S$ 1,300</strong></div>
+                    <div>Employer Contribution: <strong id="cpf-employer-contrib">S$ 1,105</strong></div>
+                  </div>
+                  <div class="total-contrib-badge">
+                    Total Monthly CPF Flow: <strong id="cpf-total-monthly">S$ 2,405</strong>
+                  </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h4 class="section-sub-title">Monthly Account Allocation</h4>
+                <div class="allocation-row-grid">
+                  <div class="allocation-row">
+                    <span class="alloc-label">Ordinary Account (OA)</span>
+                    <span class="alloc-pct" id="cpf-oa-pct">62.16%</span>
+                    <span class="alloc-val" id="cpf-oa-flow">S$ 1,495</span>
+                  </div>
+                  <div class="allocation-row">
+                    <span class="alloc-label">Special Account (SA)</span>
+                    <span class="alloc-pct" id="cpf-sa-pct">16.22%</span>
+                    <span class="alloc-val" id="cpf-sa-flow">S$ 390</span>
+                  </div>
+                  <div class="allocation-row">
+                    <span class="alloc-label">Medisave Account (MA)</span>
+                    <span class="alloc-pct" id="cpf-ma-pct">21.62%</span>
+                    <span class="alloc-val" id="cpf-ma-flow">S$ 520</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Interest projection card -->
+              <div class="card glass-card">
+                <h3 class="card-title">CPF Interest & Milestones</h3>
+                <p class="card-subtitle">Estimated compound interest generated this year (with extra 1% bonus interest included if eligible):</p>
+                
+                <div class="stat-large-glow">
+                  <span class="large-num" id="cpf-est-interest">S$ 0</span>
+                  <span class="large-lbl">Est. Interest This Year</span>
+                </div>
+
+                <div class="cpf-extra-status" id="cpf-bonus-status">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="text-success"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                  <span>Earning additional 1% p.a. on the first S$60k of combined balances!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3.5 HOUSEHOLD PANEL VIEW -->
+        <section id="view-household" class="content-view">
+          <div class="section-header-banner">
+            <h2>Household & Joint Finances</h2>
+            <p>Model joint family members, salaries, and assets to analyze your combined financial strength and run multi-life-stage projections.</p>
+          </div>
+
+          <div class="grid grid-1-3 gap-6">
+            <!-- Left Side: Switch and Add Controls -->
+            <div class="flex-column gap-4">
+              <div class="card glass-card">
+                <h3 class="card-title">Combined Finances Toggle</h3>
+                <p class="card-subtitle">Enable joint mode to aggregate all household members' cash, CPF, investments, and salaries into your dashboard calculations and charts.</p>
+                
+                <div class="toggle-section" style="margin-top: 1.5rem;">
+                  <label class="switch-container">
+                    <input type="checkbox" id="household-enabled" onchange="toggleHouseholdFinances()">
+                    <span class="switch-slider"></span>
+                    <span class="switch-label"><strong>Activate Combined View</strong></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="card glass-card">
+                <h3 class="card-title">Add Household Member</h3>
+                <p class="card-subtitle">Add standard presets or configure custom members from scratch.</p>
+                <div class="flex-column gap-2" style="margin-top: 1rem;">
+                  <button class="btn-primary" onclick="addHouseholdMember('spouse')" style="text-align: left; padding: 0.75rem 1rem; width: 100%; border-radius: var(--border-radius-md); font-weight: 500; font-family: var(--font-body); display: flex; align-items: center; gap: 0.5rem; justify-content: center; background: var(--color-primary); color: white; border: none; cursor: pointer; transition: var(--transition-smooth);">
+                    <span>👥 Add Working Spouse Preset</span>
+                  </button>
+                  <button class="btn-primary" onclick="addHouseholdMember('child')" style="text-align: left; padding: 0.75rem 1rem; width: 100%; border-radius: var(--border-radius-md); font-weight: 500; font-family: var(--font-body); display: flex; align-items: center; gap: 0.5rem; justify-content: center; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--card-border); cursor: pointer; transition: var(--transition-smooth);">
+                    <span>🍼 Add Dependent Child Preset</span>
+                  </button>
+                  <button class="btn-primary" onclick="addHouseholdMember('parent')" style="text-align: left; padding: 0.75rem 1rem; width: 100%; border-radius: var(--border-radius-md); font-weight: 500; font-family: var(--font-body); display: flex; align-items: center; gap: 0.5rem; justify-content: center; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--card-border); cursor: pointer; transition: var(--transition-smooth);">
+                    <span>👵 Add Senior Parent Preset</span>
+                  </button>
+                  <button class="btn-primary" onclick="addHouseholdMember('custom')" style="text-align: left; padding: 0.75rem 1rem; width: 100%; border-radius: var(--border-radius-md); font-weight: 500; font-family: var(--font-body); display: flex; align-items: center; gap: 0.5rem; justify-content: center; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--card-border); cursor: pointer; transition: var(--transition-smooth);">
+                    <span>➕ Add Custom Member</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Side: Members List -->
+            <div class="flex-column gap-4" style="grid-column: span 2;">
+              <div class="card glass-card" style="min-height: 400px;">
+                <h3 class="card-title">Household Members & Accounts</h3>
+                <p class="card-subtitle">Manage family member profiles. All parameters can be edited directly below.</p>
+                <div class="divider"></div>
+                <div id="household-members-list" class="flex-column gap-4">
+                  <!-- Rendered dynamically by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. ASSETS & LOANS VIEW -->
+        <section id="view-assets" class="content-view">
+          <div class="section-header-banner">
+            <h2>Assets, Investments & Liabilities</h2>
+            <p>Define your real estate, stock portfolio, cryptocurrency, SRS account, and non-mortgage liabilities.</p>
+          </div>
+
+          <div class="grid grid-2">
+            
+            <!-- Real Estate Assets -->
+            <div class="card glass-card">
+              <div class="card-header">
+                <h3 class="card-title">Real Estate / Property</h3>
+                <span class="card-icon text-primary">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </span>
+              </div>
+              <div class="input-group">
+                <label for="prop-valuation">Property Valuation (S$)</label>
+                <input type="number" id="prop-valuation" class="input-field" value="500000" min="0" oninput="updateCalculations()">
+              </div>
+              <div class="grid grid-2 no-gap" style="gap: 1rem;">
+                <div class="input-group">
+                  <label for="prop-loan">Outstanding Loan (S$)</label>
+                  <input type="number" id="prop-loan" class="input-field" value="350000" min="0" oninput="updateCalculations()">
+                </div>
+                <div class="input-group">
+                  <label for="prop-mortgage">Monthly Mortgage (S$)</label>
+                  <input type="number" id="prop-mortgage" class="input-field" value="1800" min="0" oninput="updateCalculations()">
+                </div>
+              </div>
+              <div class="input-group">
+                <label for="prop-apr">Loan Interest Rate (% p.a.)</label>
+                <input type="number" id="prop-apr" class="input-field" value="3.5" step="0.1" min="0" oninput="updateCalculations()">
+              </div>
+            </div>
+
+            <!-- Investment Portfolios -->
+            <div class="card glass-card">
+              <div class="card-header">
+                <h3 class="card-title">Investment Portfolios</h3>
+                <span class="card-icon text-accent">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                </span>
+              </div>
+              <div class="input-group">
+                <label for="inv-stocks">Equities / ETFs / Robo-Advisors (S$)</label>
+                <input type="number" id="inv-stocks" class="input-field" value="65000" min="0" oninput="updateCalculations()">
+              </div>
+              <div class="input-group">
+                <label for="inv-crypto">Cryptocurrency Portfolio (S$)</label>
+                <input type="number" id="inv-crypto" class="input-field" value="10000" min="0" oninput="updateCalculations()">
+              </div>
+              <div class="input-group">
+                <label for="inv-srs">SRS (Supplementary Retirement Scheme) (S$)</label>
+                <input type="number" id="inv-srs" class="input-field" value="5000" min="0" oninput="updateCalculations()">
+              </div>
+              <div class="input-group">
+                <label for="inv-other">Other Assets (Cash/Gold/Collectibles) (S$)</label>
+                <input type="number" id="inv-other" class="input-field" value="0" min="0" oninput="updateCalculations()">
+              </div>
+            </div>
+
+            <!-- Liabilities (Other Loans) -->
+            <div class="card glass-card">
+              <div class="card-header">
+                <h3 class="card-title">Liabilities & Non-Mortgage Debt</h3>
+                <span class="card-icon text-danger">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </span>
+              </div>
+              <div class="grid grid-2 no-gap" style="gap: 1rem;">
+                <div class="input-group">
+                  <label for="loan-car">Outstanding Car Loan (S$)</label>
+                  <input type="number" id="loan-car" class="input-field" value="15000" min="0" oninput="updateCalculations()">
+                </div>
+                <div class="input-group">
+                  <label for="pmt-car">Monthly Car Payment (S$)</label>
+                  <input type="number" id="pmt-car" class="input-field" value="800" min="0" oninput="updateCalculations()">
+                </div>
+              </div>
+              <div class="grid grid-2 no-gap" style="gap: 1rem;">
+                <div class="input-group">
+                  <label for="loan-personal">Personal / Study Loans (S$)</label>
+                  <input type="number" id="loan-personal" class="input-field" value="5000" min="0" oninput="updateCalculations()">
+                </div>
+                <div class="input-group">
+                  <label for="pmt-personal">Monthly Study Payment (S$)</label>
+                  <input type="number" id="pmt-personal" class="input-field" value="300" min="0" oninput="updateCalculations()">
+                </div>
+              </div>
+              <div class="input-group">
+                <label for="loan-cc">Credit Card Outstanding Debt (S$)</label>
+                <input type="number" id="loan-cc" class="input-field" value="1500" min="0" oninput="updateCalculations()">
+              </div>
+            </div>
+
+            <!-- Dynamic Balance Sheet Card -->
+            <div class="card glass-card stat-summary-card">
+              <h3 class="card-title">Balance Sheet Details</h3>
+              <div class="balance-sheet-list">
+                <div class="sheet-item">
+                  <span class="sheet-label">Total Liquid Cash (Banks)</span>
+                  <span class="sheet-val" id="sheet-cash">S$ 0</span>
+                </div>
+                <div class="sheet-item">
+                  <span class="sheet-label">Total CPF Wealth</span>
+                  <span class="sheet-val text-success" id="sheet-cpf">S$ 0</span>
+                </div>
+                <div class="sheet-item">
+                  <span class="sheet-label">Investments & Portfolios</span>
+                  <span class="sheet-val text-primary" id="sheet-investments">S$ 0</span>
+                </div>
+                <div class="sheet-item">
+                  <span class="sheet-label">Property Valuation</span>
+                  <span class="sheet-val" id="sheet-property">S$ 0</span>
+                </div>
+                <div class="divider"></div>
+                <div class="sheet-item total">
+                  <span class="sheet-label">Total Gross Assets</span>
+                  <span class="sheet-val text-accent" id="sheet-assets-total">S$ 0</span>
+                </div>
+                <div class="sheet-item sub">
+                  <span class="sheet-label">Total Gross Liabilities</span>
+                  <span class="sheet-val text-danger" id="sheet-liabilities-total">S$ 0</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 5. GOAL SIMULATOR VIEW (THE TOGGLES FOR DYNAMIC CALCULATIONS) -->
+        <section id="view-simulator" class="content-view">
+          <div class="section-header-banner">
+            <h2>Scenario Simulator & Parameter Toggles</h2>
+            <p>Instantly adjust all critical financial assumptions to see their long-term impact on your net worth goals.</p>
+          </div>
+
+          <div class="grid grid-2">
+            <!-- Toggles Sidebar -->
+            <div class="card glass-card simulator-controls">
+              <h3 class="card-title">Simulation Parameters</h3>
+              <p class="card-subtitle" style="margin-bottom: 1.5rem;">Drag the sliders to simulate changes instantly.</p>
+
+              <!-- Goal Networth -->
+              <div class="slider-group">
+                <div class="slider-meta">
+                  <span class="slider-label">Net Worth Goal Target</span>
+                  <span class="slider-value" id="val-sim-goal">S$ 1,000,000</span>
+                </div>
+                <input type="range" id="sim-goal" class="slider-input" min="100000" max="5000000" step="50000" value="1000000" oninput="updateSimValue('sim-goal', 'val-sim-goal', 'money'); updateCalculations()">
+              </div>
+
+              <!-- Monthly Savings Rate -->
+              <div class="slider-group">
+                <div class="slider-meta">
+                  <span class="slider-label">Liquid Savings Rate (% of Salary)</span>
+                  <span class="slider-value" id="val-sim-savings">30%</span>
+                </div>
+                <div class="slider-meta-hint">Cash saved monthly outside CPF</div>
+                <input type="range" id="sim-savings" class="slider-input" min="0" max="80" step="1" value="30" oninput="updateSimValue('sim-savings', 'val-sim-savings', 'percent'); updateCalculations()">
+              </div>
+
+              <!-- Annual Investment Return -->
+              <div class="slider-group">
+                <div class="slider-meta">
+                  <span class="slider-label">Annual Stock/Portfolio Return</span>
+                  <span class="slider-value" id="val-sim-return">6.5%</span>
+                </div>
+                <input type="range" id="sim-return" class="slider-input" min="0" max="15" step="0.1" value="6.5" oninput="updateSimValue('sim-return', 'val-sim-return', 'rate'); updateCalculations()">
+              </div>
+
+              <!-- Annual Salary Growth -->
+              <div class="slider-group">
+                <div class="slider-meta">
+                  <span class="slider-label">Annual Salary Increment</span>
+                  <span class="slider-value" id="val-sim-inc">3.0%</span>
+                </div>
+                <input type="range" id="sim-inc" class="slider-input" min="0" max="10" step="0.5" value="3.0" oninput="updateSimValue('sim-inc', 'val-sim-inc', 'rate'); updateCalculations()">
+              </div>
+
+              <!-- Real Estate Growth Rate -->
+              <div class="slider-group">
+                <div class="slider-meta">
+                  <span class="slider-label">Annual Real Estate Appreciation</span>
+                  <span class="slider-value" id="val-sim-prop">2.0%</span>
+                </div>
+                <input type="range" id="sim-prop" class="slider-input" min="-5" max="10" step="0.5" value="2.0" oninput="updateSimValue('sim-prop', 'val-sim-prop', 'rate'); updateCalculations()">
+              </div>
+
+              <!-- Retirement Age -->
+              <div class="slider-group">
+                <div class="slider-meta">
+                  <span class="slider-label">Target Financial Independence / Retirement Age</span>
+                  <span class="slider-value" id="val-sim-retire">60 Years Old</span>
+                </div>
+                <input type="range" id="sim-retire" class="slider-input" min="40" max="80" step="1" value="60" oninput="updateSimValue('sim-retire', 'val-sim-retire', 'age'); updateCalculations()">
+              </div>
+            </div>
+
+            <!-- Simulation Results Side -->
+            <div class="flex-column gap-4">
+              <div class="card glass-card text-center" style="--border-glow: var(--accent-glow); padding: 2rem;">
+                <h3 class="card-title">Simulation Analysis</h3>
+                
+                <div class="sim-metric-group">
+                  <h4 class="sim-metric-title">Goal Status</h4>
+                  <div class="sim-status-glow" id="sim-status-badge">
+                    <span class="sim-status-text" id="sim-goal-verdict">Calculating...</span>
+                  </div>
+                </div>
+
+                <div class="sim-dashboard-metrics">
+                  <div class="sim-sub-metric">
+                    <span class="lbl">Total Net Worth at Target Age</span>
+                    <strong class="val text-accent" id="sim-nw-target-age">S$ 0</strong>
+                  </div>
+                  <div class="sim-sub-metric">
+                    <span class="lbl">Liquid Cash + Investments</span>
+                    <strong class="val" id="sim-liquid-target-age">S$ 0</strong>
+                  </div>
+                  <div class="sim-sub-metric">
+                    <span class="lbl">CPF Balance at Target Age</span>
+                    <strong class="val text-success" id="sim-cpf-target-age">S$ 0</strong>
+                  </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="simulation-text-feedback" id="sim-narrative">
+                  <!-- Generated dynamically based on slider variables -->
+                </div>
+              </div>
+
+              <div class="card glass-card">
+                <h3 class="card-title">Actions & Playbooks</h3>
+                <p class="card-subtitle">Based on your parameters, here are optimal strategies to accelerate your goal:</p>
+                <ul class="playbook-list" id="playbook-container">
+                  <!-- Dynamically populated based on sliders -->
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. EXPENSE ADVISOR VIEW -->
+        <section id="view-expense" class="content-view">
+          <div class="section-header-banner">
+            <h2>Singapore Expense & Debt Advisor</h2>
+            <p>Define your monthly living expenses to analyze your budgeting splits, emergency reserves, and SG debt servicing limits.</p>
+          </div>
+
+          <div class="grid grid-1-2">
+            <!-- Left Side: Budget Inputs -->
+            <div class="card glass-card">
+              <h3 class="card-title" style="margin-bottom: 1.5rem;">Monthly Expenses</h3>
+              
+              <div class="slider-group">
+                <div class="slider-meta">
+                  <span class="slider-label">Essential Living Expenses</span>
+                  <span class="slider-value" id="val-exp-essential">S$ 1,500</span>
+                </div>
+                <div class="slider-meta-hint">Groceries, transport, utilities, insurance, basic bills</div>
+                <input type="range" id="exp-essential" class="slider-input" min="500" max="8000" step="100" value="1500" oninput="updateSimValue('exp-essential', 'val-exp-essential', 'money'); updateCalculations()">
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-meta">
+                  <span class="slider-label">Discretionary Spending</span>
+                  <span class="slider-value" id="val-exp-discretionary">S$ 800</span>
+                </div>
+                <div class="slider-meta-hint">Shopping, dining out, holidays, entertainment</div>
+                <input type="range" id="exp-discretionary" class="slider-input" min="0" max="6000" step="50" value="800" oninput="updateSimValue('exp-discretionary', 'val-exp-discretionary', 'money'); updateCalculations()">
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="card-inner-summary">
+                <div class="input-hint" style="font-size:0.85rem; margin-bottom:0.5rem; display:flex; justify-content:space-between;">Gross Income: <span id="advisor-gross-salary" style="font-weight:700;">S$ 0</span></div>
+                <div class="input-hint" style="font-size:0.85rem; margin-bottom:0.5rem; display:flex; justify-content:space-between;">Net Take-home (After Employee CPF): <span id="advisor-net-salary" style="font-weight:700;">S$ 0</span></div>
+                <div class="input-hint" style="font-size:0.85rem; color:var(--text-main); display:flex; justify-content:space-between;">Disposable Monthly Surplus: <span id="advisor-surplus" style="font-weight:700;" class="text-success">S$ 0</span></div>
+              </div>
+            </div>
+
+            <!-- Right Side: Debt ratios & Budget analysis -->
+            <div class="flex-column gap-4">
+              <!-- Debt ratios grid -->
+              <div class="grid grid-2" style="margin-bottom: 0;">
+                
+                <!-- Mortgage Servicing Ratio (MSR) -->
+                <div class="card glass-card text-center" style="padding: 1.5rem;">
+                  <h4 class="sim-metric-title">Mortgage Servicing Ratio (MSR)</h4>
+                  <div class="sim-status-glow" id="msr-status-badge" style="padding: 0.5rem 1.25rem;">
+                    <span class="sim-status-text" id="msr-value" style="font-size: 1.4rem;">0%</span>
+                  </div>
+                  <p class="card-subtitle" style="margin-top:0.75rem;" id="msr-feedback">HDB limit: max 30%</p>
+                </div>
+
+                <!-- Total Debt Servicing Ratio (TDSR) -->
+                <div class="card glass-card text-center" style="padding: 1.5rem;">
+                  <h4 class="sim-metric-title">Total Debt Servicing Ratio (TDSR)</h4>
+                  <div class="sim-status-glow" id="tdsr-status-badge" style="padding: 0.5rem 1.25rem;">
+                    <span class="sim-status-text" id="tdsr-value" style="font-size: 1.4rem;">0%</span>
+                  </div>
+                  <p class="card-subtitle" style="margin-top:0.75rem;" id="tdsr-feedback">MAS limit: max 55%</p>
+                </div>
+
+              </div>
+
+              <!-- 50/30/20 Rule Analyzer Card -->
+              <div class="card glass-card">
+                <h3 class="card-title" style="margin-bottom: 1rem;">50/30/20 Budget Analysis</h3>
+                <p class="card-subtitle" style="margin-bottom: 1.25rem;">Evaluation of your monthly budget (including mortgage and personal debt) against recommended guidelines.</p>
+                
+                <div class="budget-rules-container">
+                  <!-- Needs -->
+                  <div class="budget-rule-item">
+                    <div class="rule-header" style="display:flex; justify-content:space-between; margin-bottom:0.35rem; font-size:0.88rem;">
+                      <span class="rule-title"><strong>Needs</strong> (Target: max 50%)</span>
+                      <span class="rule-metric" id="budget-needs-value">0%</span>
+                    </div>
+                    <div class="progress-bar-container" style="height: 6px;">
+                      <div class="progress-bar-fill" id="budget-needs-bar" style="width: 0%;"></div>
+                    </div>
+                    <p class="input-meta-hint" id="budget-needs-desc" style="margin-top:0.25rem;">Mortgage, car/study loans, essentials: S$0</p>
+                  </div>
+
+                  <!-- Wants -->
+                  <div class="budget-rule-item" style="margin-top: 1rem;">
+                    <div class="rule-header" style="display:flex; justify-content:space-between; margin-bottom:0.35rem; font-size:0.88rem;">
+                      <span class="rule-title"><strong>Wants</strong> (Target: max 30%)</span>
+                      <span class="rule-metric" id="budget-wants-value">0%</span>
+                    </div>
+                    <div class="progress-bar-container" style="height: 6px;">
+                      <div class="progress-bar-fill" id="budget-wants-bar" style="width: 0%;"></div>
+                    </div>
+                    <p class="input-meta-hint" id="budget-wants-desc" style="margin-top:0.25rem;">Discretionary spending: S$0</p>
+                  </div>
+
+                  <!-- Savings & Investments -->
+                  <div class="budget-rule-item" style="margin-top: 1rem;">
+                    <div class="rule-header" style="display:flex; justify-content:space-between; margin-bottom:0.35rem; font-size:0.88rem;">
+                      <span class="rule-title"><strong>Savings & Investing</strong> (Target: min 20%)</span>
+                      <span class="rule-metric" id="budget-savings-value">0%</span>
+                    </div>
+                    <div class="progress-bar-container" style="height: 6px;">
+                      <div class="progress-bar-fill" id="budget-savings-bar" style="width: 0%;"></div>
+                    </div>
+                    <p class="input-meta-hint" id="budget-savings-desc" style="margin-top:0.25rem;">CPF contributions & surplus: S$0</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Emergency Fund Planner -->
+              <div class="card glass-card">
+                <h3 class="card-title" style="margin-bottom: 0.75rem;">Emergency Fund Planner</h3>
+                <div class="grid grid-2 no-gap" style="gap: 1.5rem; margin-bottom: 0;">
+                  <div>
+                    <p class="input-meta-hint">Target Reserve (6 Months Essentials):</p>
+                    <h3 class="card-value" id="emergency-target-value" style="font-size: 1.6rem; color: var(--color-accent);">S$ 0</h3>
+                  </div>
+                  <div>
+                    <p class="input-meta-hint">Current Liquid Cash Reserves:</p>
+                    <h3 class="card-value" id="emergency-current-value" style="font-size: 1.6rem;">S$ 0</h3>
+                  </div>
+                </div>
+                <div class="divider" style="margin: 1rem 0;"></div>
+                <div class="emergency-advisory" id="emergency-advisory-text" style="font-size: 0.88rem; line-height: 1.5;">
+                  <!-- Dynamic advice generated in app.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. PULSEAI COACH VIEW -->
+        <section id="view-chat" class="content-view">
+          <div class="section-header-banner">
+            <h2>PulseAI Financial Coach</h2>
+            <p>Chat with a dedicated local advisor or connect Google Gemini Live for interactive, state-aware financial planning.</p>
+          </div>
+
+          <div class="grid grid-3-1" style="grid-template-columns: 2fr 1fr; align-items: stretch; gap: 1.5rem; margin-bottom: 0;">
+            <!-- Left Side: Chat Container -->
+            <div class="card glass-card chat-container-card" style="display: flex; flex-direction: column; height: 580px; padding: 0;">
+              <!-- Chat Header -->
+              <div class="chat-header-pane" style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--divider-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.01);">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--color-success); box-shadow: 0 0 8px var(--color-success);" id="chat-status-dot"></div>
+                  <div>
+                    <strong id="active-advisor-title" style="font-family: var(--font-display); font-size: 1rem;">PulseAI Analyst</strong>
+                    <span id="active-advisor-mode" class="text-muted" style="font-size: 0.75rem; display: block;">Local Rules Mode</span>
+                  </div>
+                </div>
+                <!-- API Key Config Button -->
+                <button class="theme-toggle" id="chat-config-toggle" onclick="toggleChatConfig()" title="Configure Gemini API" style="width: 32px; height: 32px; border-radius: 50%;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+              </div>
+
+              <!-- Gemini API Key configuration pane (collapsible) -->
+              <div id="chat-api-panel" style="display: none; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--divider-color); background: rgba(0,0,0,0.12);">
+                <div class="input-group" style="margin-bottom: 0.5rem; display:flex; flex-direction:column; gap:0.35rem;">
+                  <label for="gemini-api-key" style="font-size: 0.82rem; display: flex; justify-content: space-between; align-items:center; font-family:var(--font-display); font-weight:600;">
+                    <span>Google Gemini API Key (Stored locally)</span>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--color-accent); text-decoration: none; font-size:0.78rem;">Get Free Key ↗</a>
+                  </label>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <input type="password" id="gemini-api-key" class="input-field" placeholder="AIzaSy..." style="flex-grow: 1; padding: 0.5rem 0.75rem; font-size: 0.85rem;" oninput="saveApiKey()">
+                    <button class="theme-toggle" onclick="testApiKey()" style="width: auto; padding: 0 1rem; border-radius: var(--border-radius-sm); font-size: 0.85rem; height: 38px;">Test</button>
+                  </div>
+                </div>
+                <div class="input-hint" style="font-size: 0.75rem; color: var(--text-muted); line-height:1.4;">If an API key is provided, your coach runs live on Google Gemini 1.5 Flash, feeding it your full financial profile securely. If left blank, it runs on our advanced local rules analyzer. Key is 100% safe as it is called entirely client-side.</div>
+              </div>
+
+              <!-- Chat Message Body -->
+              <div id="chat-history" style="flex-grow: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth;">
+                <!-- Initial Assistant Message -->
+                <div class="chat-msg assistant">
+                  <div class="chat-avatar">AI</div>
+                  <div class="chat-bubble">
+                    <p>Hello! I am your <strong>PulseAI Coach</strong>. I have analyzed your financial dashboard state and am ready to assist you!</p>
+                    <p>Choose one of the quick analysis options on the right sidebar or ask me anything directly about your CPF, high-yield interest, debt-servicing limits, or retirement trajectory.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Chat Input Footer -->
+              <div style="padding: 1rem; border-top: 1px solid var(--divider-color); background: rgba(0,0,0,0.05); display: flex; gap: 0.75rem; align-items:center;">
+                <input type="text" id="chat-input" class="input-field" placeholder="Ask a financial question..." style="border-radius: var(--border-radius-md); margin-bottom:0; flex-grow:1;" onkeydown="if(event.key === 'Enter') sendChatMessage()">
+                <button class="theme-toggle" style="width: 42px; height: 42px; border-radius: var(--border-radius-md); display: flex; align-items:center; justify-content:center; background: var(--color-primary); color: #fff; border-color: var(--color-primary);" onclick="sendChatMessage()">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Side: Coach Selector & Quick Prompts -->
+            <div class="flex-column gap-4" style="display: flex; flex-direction: column; gap: 1rem;">
+              <!-- Advisor Persona selector -->
+              <div class="card glass-card" style="padding: 1.25rem;">
+                <h3 class="card-title" style="margin-bottom: 0.75rem; font-size: 0.95rem; font-family: var(--font-display); font-weight:700;">Coach Persona</h3>
+                <div class="input-group" style="margin-bottom: 0;">
+                  <select id="chat-persona" class="input-field" style="padding: 0.55rem; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--input-border); border-radius: var(--border-radius-md); width:100%; font-family:var(--font-body); font-size:0.88rem;" onchange="changePersona()">
+                    <option value="analyst">🇸🇬 Pragmatic SG Analyst (Default)</option>
+                    <option value="coach">🏆 Encouraging Wealth Coach</option>
+                    <option value="budgeter">⚠️ Strict FIRE Disciplinarian</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Quick Prompts Card -->
+              <div class="card glass-card" style="padding: 1.25rem; flex-grow: 1; display:flex; flex-direction:column; gap:0.75rem;">
+                <h3 class="card-title" style="margin-bottom: 0.25rem; font-size: 0.95rem; font-family: var(--font-display); font-weight:700;">Quick Financial Analysis</h3>
+                <p class="input-meta-hint" style="margin-bottom: 0.5rem; font-size:0.78rem;">Click to trigger immediate custom analysis of your current state:</p>
+                <div class="quick-prompts-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <button class="btn-prompt" onclick="runQuickPrompt('budget')">
+                    <span class="prompt-icon">🔍</span>
+                    <span class="prompt-text">Analyze My Budget Health</span>
+                  </button>
+                  <button class="btn-prompt" onclick="runQuickPrompt('goal')">
+                    <span class="prompt-icon">📈</span>
+                    <span class="prompt-text">Goal Timeline Advice</span>
+                  </button>
+                  <button class="btn-prompt" onclick="runQuickPrompt('banks')">
+                    <span class="prompt-icon">🏦</span>
+                    <span class="prompt-text">Optimize High-Yield Bank Interest</span>
+                  </button>
+                  <button class="btn-prompt" onclick="runQuickPrompt('cpf')">
+                    <span class="prompt-icon">🇸🇬</span>
+                    <span class="prompt-text">Evaluate CPF Growth</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Pure JS Script -->
+  <script src="app.js"></script>
+</body>
+</html>
