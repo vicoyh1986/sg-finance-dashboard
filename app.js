@@ -117,9 +117,10 @@ const themeColors = {
   }
 };
 
-// Chart instances
+// Chart instances & Data Cache
 let projectionChart = null;
 let allocationChart = null;
+let latestProjection = null;
 
 // Initialize Dashboard
 document.addEventListener("DOMContentLoaded", () => {
@@ -1152,6 +1153,7 @@ function updateCalculations() {
     propVal, propLoan,
     carLoan, personalLoan, ccDebt
   );
+  latestProjection = projection;
 
   // Update Simulator View details
   document.getElementById('sim-nw-target-age').innerText = formatMoney(projection.targetAgeNW);
@@ -1379,13 +1381,19 @@ function run30YearSimulation(
     let totalLiabilities = propLoan + carLoan + personalLoan + ccDebt;
     let netWorth = totalAssets - totalLiabilities;
 
-    // Record datapoints
+    // Record granular datapoints for the dynamic spreadsheet breakdown
     dataPoints.push({
+      year: year,
       age: age,
       netWorth: Math.round(netWorth),
       cpf: Math.round(cpfTotal + memberCpfTotal),
+      primaryCpf: Math.round(cpfTotal),
+      memberCpf: Math.round(memberCpfTotal),
       liquid: Math.round(liquidAssets),
-      property: Math.round(propVal - propLoan)
+      cash: Math.round(cash + memberBankTotal),
+      investments: Math.round(investments),
+      property: Math.round(propVal - propLoan),
+      debt: Math.round(totalLiabilities)
     });
 
     // Check if goal reached
@@ -2544,6 +2552,52 @@ function toggleHouseholdFinances() {
     
     updateCalculations();
     saveState();
+  }
+}
+
+// Open detailed annual projection spreadsheet modal
+function openProjectionModal() {
+  const modal = document.getElementById('projection-modal');
+  const tbody = document.getElementById('projection-spreadsheet-body');
+  if (!modal || !tbody) return;
+
+  if (!latestProjection || !latestProjection.dataPoints || latestProjection.dataPoints.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--text-muted);">No simulation data available. Update parameters to generate projection.</td></tr>`;
+    modal.classList.add('active');
+    return;
+  }
+
+  tbody.innerHTML = latestProjection.dataPoints.map(d => {
+    const isTargetRetireAge = d.age === state.sim.retireAge;
+    const isGoalReached = latestProjection.goalReachedAge && d.age === latestProjection.goalReachedAge;
+    
+    let rowClass = "";
+    if (isTargetRetireAge) rowClass = "row-retire-target";
+    else if (isGoalReached) rowClass = "row-goal-reached";
+
+    return `
+      <tr class="${rowClass}">
+        <td style="opacity: 0.7;">Year ${d.year}</td>
+        <td><strong>Age ${d.age}</strong></td>
+        <td>S$ ${d.cash.toLocaleString()}</td>
+        <td>S$ ${d.investments.toLocaleString()}</td>
+        <td>S$ ${d.primaryCpf.toLocaleString()}</td>
+        <td>S$ ${d.memberCpf.toLocaleString()}</td>
+        <td>S$ ${d.property.toLocaleString()}</td>
+        <td class="${d.debt > 0 ? 'text-danger' : ''}">S$ ${d.debt.toLocaleString()}</td>
+        <td class="text-accent" style="font-weight:700;">S$ ${d.netWorth.toLocaleString()}</td>
+      </tr>
+    `;
+  }).join('');
+
+  modal.classList.add('active');
+}
+
+// Close detailed annual projection spreadsheet modal
+function closeProjectionModal(event = null) {
+  const modal = document.getElementById('projection-modal');
+  if (modal) {
+    modal.classList.remove('active');
   }
 }
 

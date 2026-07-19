@@ -974,6 +974,10 @@
                 <div class="simulation-text-feedback" id="sim-narrative">
                   <!-- Generated dynamically based on slider variables -->
                 </div>
+                
+                <button class="btn-primary" onclick="openProjectionModal()" style="margin-top: 1.5rem; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--card-border); padding: 0.75rem 1rem; border-radius: var(--border-radius-md); font-family: var(--font-body); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; justify-content: center; transition: var(--transition-smooth); width: 100%; font-size: 0.9rem;">
+                  <span>📊 View Annual Spreadsheet Breakdown</span>
+                </button>
               </div>
 
               <div class="card glass-card">
@@ -1221,6 +1225,41 @@
 
       </div>
     </main>
+  </div>
+
+  <!-- Detailed Year-by-Year Projection Spreadsheet Modal -->
+  <div id="projection-modal" class="modal-overlay" onclick="closeProjectionModal(event)">
+    <div class="modal-content glass-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" style="margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">📊 Annual Financial Projection Spreadsheet</h2>
+          <p class="modal-subtitle" style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">Detailed year-by-year compounding simulation of liquid portfolios, combined assets, CPF growth, and debt amortization.</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeProjectionModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-table-container">
+          <table class="projection-spreadsheet">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Age</th>
+                <th>Combined Cash (S$)</th>
+                <th>Combined Investments (S$)</th>
+                <th>Primary CPF (S$)</th>
+                <th>Household CPF (S$)</th>
+                <th>Property Equity (S$)</th>
+                <th>Combined Debt (S$)</th>
+                <th>Combined Net Worth (S$)</th>
+              </tr>
+            </thead>
+            <tbody id="projection-spreadsheet-body">
+              <!-- Rendered dynamically by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Pure JS Script -->
