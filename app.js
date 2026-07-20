@@ -60,7 +60,15 @@ let state = {
     members: [
       { id: 'm1', name: 'Spouse (Eve)', relation: 'spouse', age: 28, salary: 5000, oa: 25000, sa: 15000, ma: 12000, ra: 0, bankBalance: 15000 }
     ]
-  }
+  },
+  profile: {
+    name: "Singaporean Saver",
+    gender: "Male",
+    dob: "1998-07-20",
+    lifeStage: "young-pro"
+  },
+  insurance: [],
+  kidsMode: false
 };
 
 // Theme Color Mapping for Chart.js and layouts
@@ -114,6 +122,16 @@ const themeColors = {
     grid: 'rgba(99, 102, 241, 0.06)',
     text: '#6366f1',
     chartBg: 'rgba(99, 102, 241, 0.08)'
+  },
+  'theme-junior': {
+    isDark: true,
+    primary: '#ff007f', // Sweet Pink
+    accent: '#00ffff',  // Aqua
+    success: '#39ff14', // Neon Green
+    danger: '#ff3131',
+    grid: 'rgba(255, 0, 127, 0.08)',
+    text: '#f472b6',
+    chartBg: 'rgba(255, 0, 127, 0.1)'
   }
 };
 
@@ -373,6 +391,7 @@ function switchTab(tabId) {
     cpf: 'Singapore CPF Planner',
     household: 'Household & Joint Finances',
     assets: 'Assets & Liabilities',
+    insurance: 'Profile & Insurance Hub',
     simulator: 'Scenario Simulator',
     expense: 'Expense & Debt Advisor',
     chat: 'PulseAI Financial Coach'
@@ -383,13 +402,44 @@ function switchTab(tabId) {
     cpf: 'Ordinary, Special, Medisave, and Retirement Accounts compounded.',
     household: 'Model joint family members, salaries, and assets for aggregate net worth planning.',
     assets: 'Real estate, stock portfolios, and debt amortization.',
+    insurance: 'Demographics profile and standard protection safeguards.',
     simulator: 'Toggle parameters in real-time to plan retirement targets.',
     expense: 'Define your monthly living expenses to analyze budget health.',
     chat: 'Interactive state-aware financial planning powered by local rules or Google Gemini.'
   };
 
-  document.getElementById('page-title').innerText = titleMap[tabId] || 'Financial Pulse';
-  document.getElementById('page-subtitle').innerText = subtitleMap[tabId] || '';
+  let pageTitle = titleMap[tabId] || 'Financial Pulse';
+  let pageSubtitle = subtitleMap[tabId] || '';
+
+  if (state.kidsMode) {
+    const kidsTitleMap = {
+      dashboard: '🏰 My Treasure Castle',
+      banks: '🪙 My Piggy Jars',
+      cpf: '🌳 My Magic Money Tree',
+      household: '🏡 Family Clubhouse',
+      assets: '⛵ My Ships & Anchors',
+      insurance: '🛡️ Shield & Avatar Hub',
+      simulator: '🚀 Future Time Machine',
+      expense: '🍕 Magic Allowance',
+      chat: '🐷 Piggy Money Mentor'
+    };
+    const kidsSubtitleMap = {
+      dashboard: 'Track your golden treasure point accumulations and time travel to retirement!',
+      banks: 'Feed coins into your high-yield piggy bank jars to grow magic coins!',
+      cpf: 'Watch your Ordinary, Special, and Medisave leaves sprout with compound points!',
+      household: 'Add family clubhouse members and aggregate your fleet treasures!',
+      assets: 'Track your real estate castles, golden ships, and anchor loans.',
+      insurance: 'Log shields, defensive bubbles, and endowments to safeguard your castle gold!',
+      simulator: 'Time travel through your compound variables and explore target gold goals!',
+      expense: 'Map out your magical allowance to see where you feed your sweets!',
+      chat: 'Interactive state-aware coaching powered by Piggy the Money Mentor 🐷!'
+    };
+    pageTitle = kidsTitleMap[tabId] || pageTitle;
+    pageSubtitle = kidsSubtitleMap[tabId] || pageSubtitle;
+  }
+
+  document.getElementById('page-title').innerText = pageTitle;
+  document.getElementById('page-subtitle').innerText = pageSubtitle;
 
   // Trigger charts redraw if switching to dashboard
   if (tabId === 'dashboard') {
@@ -525,6 +575,34 @@ function syncInputsDOM() {
   }
 
   renderHouseholdMembers();
+
+  // 8. Profile & Insurance [NEW]
+  if (state.profile === undefined) {
+    state.profile = { name: "Singaporean Saver", gender: "Male", dob: "1998-07-20", lifeStage: "young-pro" };
+  }
+  if (state.insurance === undefined) {
+    state.insurance = [];
+  }
+  if (state.kidsMode === undefined) {
+    state.kidsMode = false;
+  }
+  setVal('profile-name', state.profile.name);
+  setVal('profile-gender', state.profile.gender);
+  setVal('profile-dob', state.profile.dob);
+  setVal('profile-life-stage', state.profile.lifeStage);
+
+  // Sync avatar & info details
+  syncSidebarProfileDetails();
+
+  // Sync Kids Mode Toggle
+  const kidsModeToggle = document.getElementById('kids-mode-toggle');
+  if (kidsModeToggle) {
+    kidsModeToggle.checked = !!state.kidsMode;
+  }
+  applyKidsModeState(!!state.kidsMode);
+
+  // Render ledger
+  renderInsurancePolicies();
 }
 
 // Toggle multi-categories panels on checking bank optimize
@@ -1110,7 +1188,13 @@ function updateCalculations() {
   const otherAssets = state.assets.invOther;
   const propVal = state.assets.propValuation;
 
-  const totalInvestments = stocks + crypto + srs + otherAssets;
+  // Add insurance policies cash value
+  let insuranceCashTotal = 0;
+  if (state.insurance && state.insurance.length > 0) {
+    insuranceCashTotal = state.insurance.reduce((sum, p) => sum + Number(p.cashValue || 0), 0);
+  }
+
+  const totalInvestments = stocks + crypto + srs + otherAssets + insuranceCashTotal;
   const grossAssets = totalLiquidCash + currentCpfTotal + totalInvestments + propVal;
 
   const propLoan = state.assets.propLoan;
@@ -2600,4 +2684,481 @@ function closeProjectionModal(event = null) {
     modal.classList.remove('active');
   }
 }
+
+
+/* ==========================================================================
+   🛡️ Personal Profile & Insurance Engine [NEW]
+   ========================================================================== */
+
+function updateProfileName(val) {
+  if (!state.profile) state.profile = {};
+  state.profile.name = val || "Singaporean Saver";
+  syncSidebarProfileDetails();
+  saveState();
+}
+
+function updateProfileGender(val) {
+  if (!state.profile) state.profile = {};
+  state.profile.gender = val || "Male";
+  syncSidebarProfileDetails();
+  saveState();
+}
+
+function updateProfileDob(val) {
+  if (!state.profile) state.profile = {};
+  state.profile.dob = val || "1998-07-20";
+  updateCalculations();
+  saveState();
+}
+
+function updateProfileLifeStage(val) {
+  if (!state.profile) state.profile = {};
+  state.profile.lifeStage = val || "young-pro";
+  syncSidebarProfileDetails();
+  updateCalculations();
+  saveState();
+}
+
+// Dynamically sync sidebar details with profile
+function syncSidebarProfileDetails() {
+  const avatarEl = document.getElementById('sidebar-user-avatar');
+  const nameEl = document.getElementById('sidebar-user-name');
+  const statusEl = document.getElementById('sidebar-user-status');
+  
+  if (!state.profile) state.profile = { name: "Singaporean Saver", gender: "Male", dob: "1998-07-20", lifeStage: "young-pro" };
+  const name = state.profile.name || "Singaporean Saver";
+  
+  // Set avatar initials (up to 2 letters)
+  if (avatarEl) {
+    if (state.kidsMode) {
+      avatarEl.innerText = "🐷";
+      avatarEl.style.fontSize = "1.5rem";
+    } else {
+      const parts = name.trim().split(/\s+/);
+      const initials = parts.length > 1 ? (parts[0][0] + parts[1][0]) : (parts[0].slice(0, 2));
+      avatarEl.innerText = initials.toUpperCase();
+      avatarEl.style.fontSize = "1rem";
+    }
+  }
+  
+  if (nameEl) {
+    nameEl.innerText = name;
+  }
+  
+  if (statusEl) {
+    if (state.kidsMode) {
+      // Calculate level based on net worth
+      const level = getJuniorLevelMetrics().level;
+      statusEl.innerText = `👑 Level ${level} Treasure Hunter`;
+    } else {
+      const lifeStageLabels = {
+        'student': '🎓 Fresh Graduate',
+        'young-pro': '💼 Young Professional',
+        'family-nest': '🏡 Family Nest Builder',
+        'mid-career': '📈 Mid-Career Planner',
+        'golden-retiree': '🌅 Pre-Retiree'
+      };
+      statusEl.innerText = lifeStageLabels[state.profile.lifeStage] || 'Wealth Accumulator';
+    }
+  }
+}
+
+// Save Top Action & Toast Morphing Transition
+function triggerManualSave() {
+  saveState();
+  
+  const btn = document.getElementById('btn-save-top');
+  const btnText = document.getElementById('save-btn-text-el');
+  
+  if (btn && btnText) {
+    btn.classList.add('saved');
+    btnText.innerText = "Synced ✓";
+    
+    // Slide down toast
+    showToastNotification("✨ Local State Synced Successfully!");
+    
+    setTimeout(() => {
+      btn.classList.remove('saved');
+      btnText.innerText = "Save State";
+    }, 1500);
+  }
+}
+
+// Slide-down glassmorphic toast notification creator
+function showToastNotification(message) {
+  let toast = document.getElementById('custom-toast-notification-id');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'custom-toast-notification-id';
+    toast.className = 'custom-toast';
+    document.body.appendChild(toast);
+  }
+  
+  toast.innerHTML = `
+    <div class="toast-icon">✓</div>
+    <span>${message}</span>
+  `;
+  
+  // Trigger active state
+  setTimeout(() => toast.classList.add('active'), 50);
+  
+  // Fade out
+  setTimeout(() => {
+    toast.classList.remove('active');
+  }, 2500);
+}
+
+// Add an Insurance Policy to active state
+function addInsurancePolicy() {
+  const nameEl = document.getElementById('ins-name');
+  const insurerEl = document.getElementById('ins-insurer');
+  const typeEl = document.getElementById('ins-type');
+  const saEl = document.getElementById('ins-sum-assured');
+  const premEl = document.getElementById('ins-premium');
+  const freqEl = document.getElementById('ins-frequency');
+  const cashEl = document.getElementById('ins-cash-value');
+
+  if (!nameEl || !saEl || !premEl) return;
+
+  const name = nameEl.value.trim();
+  const insurer = insurerEl.value;
+  const type = typeEl.value;
+  const sumAssured = Number(saEl.value) || 0;
+  const premium = Number(premEl.value) || 0;
+  const frequency = freqEl.value;
+  const cashValue = Number(cashEl.value) || 0;
+
+  if (!name) {
+    alert("Please enter a Policy Name / Plan.");
+    return;
+  }
+  if (sumAssured <= 0 && type !== 'medical') {
+    alert("Please enter a valid Sum Assured amount.");
+    return;
+  }
+  if (premium <= 0) {
+    alert("Please enter a valid Premium Cost.");
+    return;
+  }
+
+  const newPolicy = {
+    id: 'policy-' + Date.now(),
+    name,
+    insurer,
+    type,
+    sumAssured,
+    premium,
+    frequency,
+    cashValue
+  };
+
+  if (!state.insurance) state.insurance = [];
+  state.insurance.push(newPolicy);
+
+  // Clear inputs
+  nameEl.value = "";
+  saEl.value = "";
+  premEl.value = "";
+  cashEl.value = "";
+
+  // Render and save
+  renderInsurancePolicies();
+  updateCalculations();
+  saveState();
+  showToastNotification(`🛡️ Policy "${name}" Added Successfully!`);
+}
+
+// Remove an Insurance Policy
+function removeInsurancePolicy(id) {
+  if (!state.insurance) return;
+  const policy = state.insurance.find(p => p.id === id);
+  const pName = policy ? policy.name : "Policy";
+  state.insurance = state.insurance.filter(p => p.id !== id);
+  
+  renderInsurancePolicies();
+  updateCalculations();
+  saveState();
+  showToastNotification(`🗑️ Policy "${pName}" Removed.`);
+}
+
+// Render dynamic Insurance list and standard safety ratios
+function renderInsurancePolicies() {
+  const tbody = document.getElementById('insurance-ledger-body');
+  if (!tbody) return;
+
+  if (!state.insurance || state.insurance.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:1.5rem; color:var(--text-muted);" id="lbl-no-policies">No active insurance policies registered. Secure a safeguard below!</td></tr>`;
+    updateInsuranceRatios(0, 0, 0, 0, false);
+    return;
+  }
+
+  let totalAnnualPremium = 0;
+  let totalCashValue = 0;
+  
+  let lifeSA = 0;
+  let criticalSA = 0;
+  let hasMedicalShield = false;
+
+  tbody.innerHTML = state.insurance.map(p => {
+    // Math out annual premiums
+    const annualPremium = p.frequency === 'monthly' ? (p.premium * 12) : p.premium;
+    totalAnnualPremium += annualPremium;
+    totalCashValue += (p.cashValue || 0);
+
+    // Sum assured distributions
+    if (p.type === 'life') lifeSA += p.sumAssured;
+    else if (p.type === 'critical') criticalSA += p.sumAssured;
+    else if (p.type === 'medical') hasMedicalShield = true;
+
+    // Badges & pills styling
+    const insurerClass = p.insurer.toLowerCase().replace(/\s+/g, '');
+    const insurerBadge = `<span class="insurer-badge ${insurerClass}">${p.insurer}</span>`;
+    const typePill = `<span class="policy-pill ${p.type}">${p.type === 'savings' ? '🐷 Endowment' : p.type === 'critical' ? '⚡ Critical' : p.type}</span>`;
+
+    return `
+      <tr>
+        <td style="padding:0.75rem 0.85rem;">
+          <div style="font-weight:600; color:var(--text-main);">${p.name}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.15rem;">Type: ${typePill}</div>
+        </td>
+        <td style="padding:0.75rem 0.85rem;">${insurerBadge}</td>
+        <td style="padding:0.75rem 0.85rem; font-weight:700;">${p.type === 'medical' ? 'As Charged' : 'S$ ' + p.sumAssured.toLocaleString()}</td>
+        <td style="padding:0.75rem 0.85rem;">
+          <div>S$ ${p.premium.toLocaleString()}</div>
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">${p.frequency}</div>
+        </td>
+        <td style="padding:0.75rem 0.1rem; text-align:center;">
+          <button class="btn-delete-policy" onclick="removeInsurancePolicy('${p.id}')" title="Delete safeguarding policy">×</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Update annual counters in DOM
+  document.getElementById('ins-total-annual-premium').innerText = `S$ ${totalAnnualPremium.toLocaleString()}`;
+  document.getElementById('ins-total-cash-value').innerText = `S$ ${totalCashValue.toLocaleString()}`;
+
+  // Process and update progress bars
+  updateInsuranceRatios(totalAnnualPremium, totalCashValue, lifeSA, criticalSA, hasMedicalShield);
+}
+
+// Calculate and render Singapore Protection safety benchmarks
+function updateInsuranceRatios(annualPremium, totalCash, lifeSA, criticalSA, hasMedicalShield) {
+  const salary = Number(state.cpf.salary) || 0;
+  const annualIncome = salary * 12;
+
+  // Ratios against annual income
+  const lifeTarget = annualIncome * 10;
+  const criticalTarget = annualIncome * 4;
+
+  const lifeRatio = lifeTarget > 0 ? (lifeSA / lifeTarget) * 100 : 0;
+  const criticalRatio = criticalTarget > 0 ? (criticalSA / criticalTarget) * 100 : 0;
+
+  // Set Life values
+  const lifeLabel = document.getElementById('ins-ratio-life');
+  const lifeBar = document.getElementById('ins-progress-life');
+  if (lifeLabel && lifeBar) {
+    lifeLabel.innerText = `S$ ${lifeSA.toLocaleString()} / S$ ${lifeTarget.toLocaleString()}`;
+    lifeBar.style.width = `${Math.min(100, lifeRatio)}%`;
+    lifeBar.style.background = lifeRatio >= 100 ? 'var(--color-success)' : lifeRatio >= 50 ? 'var(--color-primary)' : 'var(--color-danger)';
+  }
+
+  // Set Critical values
+  const ciLabel = document.getElementById('ins-ratio-critical');
+  const ciBar = document.getElementById('ins-progress-critical');
+  if (ciLabel && ciBar) {
+    ciLabel.innerText = `S$ ${criticalSA.toLocaleString()} / S$ ${criticalTarget.toLocaleString()}`;
+    ciBar.style.width = `${Math.min(100, criticalRatio)}%`;
+    ciBar.style.background = criticalRatio >= 100 ? 'var(--color-success)' : criticalRatio >= 50 ? 'var(--color-accent)' : 'var(--color-danger)';
+  }
+
+  // Set Integrated Shield values
+  const medLabel = document.getElementById('ins-ratio-medical');
+  const medBar = document.getElementById('ins-progress-medical');
+  if (medLabel && medBar) {
+    if (hasMedicalShield) {
+      medLabel.innerText = "💀 Shield Covered ✓";
+      medLabel.className = "text-success";
+      medBar.style.width = "100%";
+      medBar.style.background = 'var(--color-success)';
+    } else {
+      medLabel.innerText = "No Shield Found ⚠️";
+      medLabel.className = "text-danger";
+      medBar.style.width = "0%";
+      medBar.style.background = 'var(--color-danger)';
+    }
+  }
+
+  // Generate automated safe audit feedback
+  const feedbackEl = document.getElementById('ins-audit-feedback');
+  if (feedbackEl) {
+    if (state.kidsMode) {
+      feedbackEl.innerHTML = `🐷 <strong>Piggy's Safeguard Audit:</strong> Your magical piggy shields are protecting your castle! Make sure you have at least 1 shielding bubble for your health!`;
+    } else if (annualPremium === 0) {
+      feedbackEl.innerHTML = `🛡️ <strong>Automated Safety Audit:</strong> You currently have no active financial shields. We strongly recommend securing an Integrated Shield Plan to cover Singapore hospital bills, and term insurance matching 10x your annual wage.`;
+    } else {
+      let advice = "🛡️ <strong>Safety Audit:</strong> ";
+      let vectors = [];
+      if (lifeRatio < 100) vectors.push(`Death/Disability cover (deficit of S$ ${(lifeTarget - lifeSA).toLocaleString()})`);
+      if (criticalRatio < 100) vectors.push(`Critical Illness cover (deficit of S$ ${(criticalTarget - criticalSA).toLocaleString()})`);
+      if (!hasMedicalShield) vectors.push(`Medical Shield coverage (highly critical)`);
+
+      if (vectors.length === 0) {
+        advice += `Congratulations! Your insurance coverages meet or exceed the standard Singapore protection criteria. You are fully shielded against major risks.`;
+      } else {
+        advice += `You have active coverage but are underinsured in: ${vectors.join('; ')}. Consult an adviser or add more shields to close the protection gap.`;
+      }
+      feedbackEl.innerHTML = advice;
+    }
+  }
+}
+
+
+/* ==========================================================================
+   🧸 Gamified Kids Mode Toggle System (Junior Mode Engine)
+   ========================================================================== */
+
+function toggleKidsMode(isActive) {
+  state.kidsMode = isActive;
+  
+  if (isActive) {
+    // Force set theme to junior
+    state.theme = 'theme-junior';
+  } else {
+    // Revert to obsidian
+    state.theme = 'theme-obsidian';
+  }
+  
+  // Sync selectors
+  const select = document.getElementById('theme-select');
+  if (select) {
+    select.value = state.theme;
+  }
+
+  applyKidsModeState(isActive);
+  
+  // Repaint active tab labels
+  switchTab(state.activeTab);
+
+  updateCalculations();
+  saveState();
+  showToastNotification(isActive ? "🧸 Welcome to Junior Treasure Hunter Mode! 🐷" : "💼 Returned to Professional Wealth Dashboard.");
+}
+
+// Compute dynamic level progression for kids mode based on networth
+function getJuniorLevelMetrics() {
+  const nw = latestProjection ? latestProjection.currentNetWorth : 0;
+  
+  // Progression brackets
+  if (nw < 10000) {
+    return { level: 1, title: "Copper Piggy Jar 🪙", icon: "🐷", desc: "You're starting your magical wealth quest! Save up coins to fill your jar." };
+  } else if (nw < 50000) {
+    return { level: 2, title: "Bronze Treasure Map 🗺️", icon: "🗺️", desc: "You've gathered real savings treasure! Your map is revealing secret gold vaults." };
+  } else if (nw < 150000) {
+    return { level: 3, title: "Silver Wealth Explorer ⛵", icon: "⛵", desc: "Sailing across compounding oceans! Your silver ship is compounding beautifully." };
+  } else if (nw < 400000) {
+    return { level: 4, title: "Golden Castle Guardian 🏰", icon: "🏰", desc: "Incredible! Your golden castle is generating huge interest points every second!" };
+  } else {
+    return { level: 5, title: "Diamond Treasure Emperor 👑", icon: "👑", desc: "Legendary! Your magical treasury compounds at super-cosmic speed! You own the galaxy!" };
+  }
+}
+
+// Map adult professional terms to magical equivalents
+function applyKidsModeState(isActive) {
+  const body = document.body;
+  if (isActive) {
+    body.classList.add('kids-mode-active');
+  } else {
+    body.classList.remove('kids-mode-active');
+  }
+
+  // Sync rank card display
+  const rankBox = document.getElementById('kids-rank-box');
+  if (rankBox) {
+    rankBox.style.display = isActive ? 'flex' : 'none';
+    if (isActive) {
+      const metrics = getJuniorLevelMetrics();
+      document.getElementById('kids-rank-icon').innerText = metrics.icon;
+      document.getElementById('kids-rank-title').innerText = `Level ${metrics.level}: ${metrics.title}`;
+      document.getElementById('kids-rank-desc').innerText = metrics.desc;
+    }
+  }
+
+  // Sidebar navigations mapping
+  const navMap = {
+    'nav-text-dashboard': isActive ? '🏰 My Castle' : 'Dashboard',
+    'nav-text-banks': isActive ? '🪙 Piggy Jars' : 'Bank Accounts',
+    'nav-text-cpf': isActive ? '🌳 Money Tree' : 'CPF Planner',
+    'nav-text-household': isActive ? '🏡 Family Club' : 'Household Panel',
+    'nav-text-assets': isActive ? '⛵ Ships & Anchors' : 'Assets & Loans',
+    'nav-text-insurance': isActive ? '🛡️ Shield & Avatar' : 'Profile & Insurance',
+    'nav-text-simulator': isActive ? '🚀 Time Machine' : 'Goal Simulator',
+    'nav-text-expense': isActive ? '🍕 My Allowance' : 'Expense Advisor',
+    'nav-text-chat': isActive ? '🐷 Piggy Mentor' : 'PulseAI Coach'
+  };
+
+  Object.keys(navMap).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = navMap[id];
+  });
+
+  // Top header metrics translation
+  const statsMap = {
+    'kids-toggle-label-text': isActive ? 'Kids Active!' : 'Kids Mode',
+    'lbl-networth': isActive ? 'Grand Treasure:' : 'Net Worth:',
+    'lbl-goal-progress': isActive ? 'Level-Up Progress:' : 'Goal Progress:',
+    'lbl-combined-view': isActive ? 'Combined Fleet Active!' : 'Combined View Active'
+  };
+
+  Object.keys(statsMap).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = statsMap[id];
+  });
+
+  // Section titles translations (Profile view)
+  const viewsProfileMap = {
+    'lbl-profile-title': isActive ? '👶 Junior Avatar Settings' : 'Personal Financial Profile',
+    'lbl-profile-subtitle': isActive ? 'Customize your junior explorer avatar name, gender, and school status!' : 'Manage your personal demographics to configure customized wealth limits and age benchmarks.',
+    'lbl-profile-name-label': isActive ? 'Avatar Name' : 'Full Name',
+    'lbl-profile-gender-label': isActive ? 'Avatar Body Type' : 'Gender Identity',
+    'lbl-profile-dob-label': isActive ? 'Day of Birth' : 'Date of Birth',
+    'lbl-profile-life-stage-label': isActive ? 'School Level' : 'Life-Stage Bracket',
+    'lbl-add-policy-title': isActive ? '🛡️ Secure a Magical Shield' : '🛡️ Secure New Insurance Safeguard',
+    'lbl-add-policy-subtitle': isActive ? 'Add protective bubbles or piggy Endowments to keep your castle safe!' : 'Log an active insurance policy to protect your assets and evaluate coverages.',
+    'lbl-ins-name-label': isActive ? 'Shield / Jar Name' : 'Policy Name / Plan',
+    'lbl-ins-insurer-label': isActive ? 'Magical Insurer Guild' : 'Insurer',
+    'lbl-ins-type-label': isActive ? 'Shield Type' : 'Coverage Vector',
+    'lbl-ins-sum-assured-label': isActive ? 'Shield Bubble HP (S$)' : 'Sum Assured (S$)',
+    'lbl-ins-premium-label': isActive ? 'Feeding Premium (S$)' : 'Premium (S$)',
+    'lbl-ins-frequency-label': isActive ? 'Feeding Cycle' : 'Premium Cycle',
+    'lbl-ins-cash-value-label': isActive ? 'Jar Cash Value (S$)' : 'Cash Value / Payout (S$)',
+    'btn-add-policy-text': isActive ? '🛡️ Summon Magical Shield' : '🛡️ Add Active Policy Safeguard',
+    'lbl-protection-title': isActive ? '🛡️ Active Defenses & Safeguards' : 'Insurance Protection & Safeguards',
+    'lbl-protection-subtitle': isActive ? 'See how your bubbles defend your castle from bad storms!' : 'An audit of your active safety vectors against standard Singapore protection guidelines.',
+    'lbl-annual-premiums': isActive ? 'Annual Jar Feedings' : 'Total Annual Premiums',
+    'lbl-accumulated-cash': isActive ? 'Accumulated Gold Coins' : 'Accumulated Cash Value',
+    'lbl-ledger-title': isActive ? '📋 Magical Shield Registry' : '📋 Safeguard Policies Ledger',
+    'lbl-ledger-subtitle': isActive ? 'Check all active bubble filters protecting your gold!' : 'Detailed ledger list of all currently tracked insurance policy protections.',
+    'tbl-th-policy': isActive ? 'Shield Name' : 'Policy Details',
+    'tbl-th-insurer': isActive ? 'Guild' : 'Insurer',
+    'tbl-th-coverage': isActive ? 'Shield HP' : 'Sum Assured',
+    'tbl-th-premium': isActive ? 'Premium Cost' : 'Premium',
+    'tbl-th-action': isActive ? 'Poof!' : 'Action'
+  };
+
+  Object.keys(viewsProfileMap).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.tagName === 'INPUT') {
+        el.placeholder = isActive ? 'e.g. My Pink Bubble' : 'e.g. PRUActive Term';
+      } else {
+        el.innerText = viewsProfileMap[id];
+      }
+    }
+  });
+
+  // Re-sync avatar & details
+  syncSidebarProfileDetails();
+}
+
 

@@ -28,35 +28,39 @@
       <nav class="sidebar-menu">
         <button class="nav-item active" onclick="switchTab('dashboard')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-          Dashboard
+          <span id="nav-text-dashboard">Dashboard</span>
         </button>
         <button class="nav-item" onclick="switchTab('banks')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="6.01" y2="15"/><line x1="10" y1="15" x2="10.01" y2="15"/></svg>
-          Bank Accounts
+          <span id="nav-text-banks">Bank Accounts</span>
         </button>
         <button class="nav-item" onclick="switchTab('cpf')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          CPF Planner
+          <span id="nav-text-cpf">CPF Planner</span>
         </button>
         <button class="nav-item" onclick="switchTab('household')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Household Panel
+          <span id="nav-text-household">Household Panel</span>
         </button>
         <button class="nav-item" onclick="switchTab('assets')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          Assets & Loans
+          <span id="nav-text-assets">Assets & Loans</span>
+        </button>
+        <button class="nav-item" id="nav-item-insurance" onclick="switchTab('insurance')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 11 11 13 15 9"/></svg>
+          <span id="nav-text-insurance">Profile & Insurance</span>
         </button>
         <button class="nav-item" onclick="switchTab('simulator')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-          Goal Simulator
+          <span id="nav-text-simulator">Goal Simulator</span>
         </button>
         <button class="nav-item" onclick="switchTab('expense')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-          Expense Advisor
+          <span id="nav-text-expense">Expense Advisor</span>
         </button>
         <button class="nav-item" onclick="switchTab('chat')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          PulseAI Coach
+          <span id="nav-text-chat">PulseAI Coach</span>
         </button>
       </nav>
 
@@ -88,10 +92,10 @@
            <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importData(event)">
         </div>
         <div class="user-profile">
-          <div class="user-avatar">SG</div>
+          <div class="user-avatar" id="sidebar-user-avatar">SG</div>
           <div class="user-info">
-            <span class="user-name">Singaporean Saver</span>
-            <span class="user-status">Wealth Accumulator</span>
+            <span class="user-name" id="sidebar-user-name">Singaporean Saver</span>
+            <span class="user-status" id="sidebar-user-status">Wealth Accumulator</span>
           </div>
         </div>
       </div>
@@ -109,16 +113,29 @@
         
         <div class="header-actions">
           <div class="quick-stat-pill" id="household-mode-pill" style="display: none; background: rgba(16, 185, 129, 0.15); border-color: var(--color-success);">
-            <span class="stat-label text-success">Combined View Active</span>
+            <span class="stat-label text-success" id="lbl-combined-view">Combined View Active</span>
           </div>
           <div class="quick-stat-pill">
-            <span class="stat-label">Net Worth:</span>
+            <span class="stat-label" id="lbl-networth">Net Worth:</span>
             <span class="stat-value text-accent" id="global-networth">S$ 0</span>
           </div>
           <div class="quick-stat-pill">
-            <span class="stat-label">Goal Progress:</span>
+            <span class="stat-label" id="lbl-goal-progress">Goal Progress:</span>
             <span class="stat-value text-success" id="global-progress">0%</span>
           </div>
+          
+          <!-- Kids Mode Toggle Switch -->
+          <div class="kids-toggle-container" title="Switch between Adult & Junior Mode!">
+            <label class="kids-toggle-switch">
+              <input type="checkbox" id="kids-mode-toggle" onchange="toggleKidsMode(this.checked)">
+              <span class="kids-toggle-slider">
+                <span class="kids-icon-baby">👶</span>
+                <span class="kids-icon-adult">💼</span>
+              </span>
+            </label>
+            <span class="kids-toggle-label" id="kids-toggle-label-text">Kids Mode</span>
+          </div>
+
           <div class="theme-selector-container">
             <select id="theme-select" class="theme-select" onchange="changeTheme(this.value)">
               <option value="theme-obsidian">🔮 Obsidian Purple</option>
@@ -128,6 +145,12 @@
               <option value="theme-aura">🌈 Minimalist Aura</option>
             </select>
           </div>
+
+          <!-- Top Right Premium Save Button -->
+          <button class="btn-save-top" id="btn-save-top" onclick="triggerManualSave()" title="Sync and Save All Settings">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" class="save-icon-svg"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span class="save-btn-text" id="save-btn-text-el">Save State</span>
+          </button>
         </div>
       </header>
 
@@ -868,6 +891,232 @@
                   <span class="sheet-val text-danger" id="sheet-liabilities-total">S$ 0</span>
                 </div>
               </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 4b. PROFILE & INSURANCE VIEW [NEW] -->
+        <section id="view-insurance" class="content-view">
+          <div class="grid grid-2">
+            
+            <!-- Left Column: Personal Profile & Add Policy Forms -->
+            <div class="flex-column gap-4" style="display: flex; flex-direction: column; gap: 1.5rem;">
+              
+              <!-- Personal Financial Profile Card -->
+              <div class="card glass-card">
+                <div class="card-header">
+                  <h3 class="card-title" id="lbl-profile-title">Personal Financial Profile</h3>
+                  <span class="card-icon text-primary">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </span>
+                </div>
+                <p class="card-subtitle" id="lbl-profile-subtitle">Manage your personal demographics to configure customized wealth limits and age benchmarks.</p>
+                
+                <div class="grid grid-2 no-gap" style="gap: 1rem; margin-top: 1rem;">
+                  <div class="input-group">
+                    <label for="profile-name" id="lbl-profile-name-label">Full Name</label>
+                    <input type="text" id="profile-name" class="input-field" value="Singaporean Saver" oninput="updateProfileName(this.value)">
+                  </div>
+                  <div class="input-group">
+                    <label for="profile-gender" id="lbl-profile-gender-label">Gender Identity</label>
+                    <select id="profile-gender" class="input-field" onchange="updateProfileGender(this.value)">
+                      <option value="Male">👦 Male</option>
+                      <option value="Female">👧 Female</option>
+                      <option value="Other">🌈 Other / Prefer not to say</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="grid grid-2 no-gap" style="gap: 1rem;">
+                  <div class="input-group">
+                    <label for="profile-dob" id="lbl-profile-dob-label">Date of Birth</label>
+                    <input type="date" id="profile-dob" class="input-field" value="1998-07-20" onchange="updateProfileDob(this.value)">
+                  </div>
+                  <div class="input-group">
+                    <label for="profile-life-stage" id="lbl-profile-life-stage-label">Life-Stage Bracket</label>
+                    <select id="profile-life-stage" class="input-field" onchange="updateProfileLifeStage(this.value)">
+                      <option value="student">🎓 Student / Fresh Graduate</option>
+                      <option value="young-pro">💼 Young Professional (Single)</option>
+                      <option value="family-nest">🏡 Family Nest builder (Married)</option>
+                      <option value="mid-career">📈 Mid-Career established</option>
+                      <option value="golden-retiree">🌅 Preparing for Retirement</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Junior Rank Display (Only visible or styled specially) -->
+                <div class="kids-rank-box" id="kids-rank-box" style="display: none; background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,0,127,0.1) 100%); border: 1.5px dashed var(--color-primary); border-radius: var(--border-radius-md); padding: 1rem; align-items: center; gap: 1rem; margin-top: 0.5rem; transition: var(--transition-smooth);">
+                  <div class="rank-icon-big" style="font-size: 2.5rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));" id="kids-rank-icon">🐷</div>
+                  <div style="flex-grow:1;">
+                    <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--color-accent); letter-spacing: 0.05em;" id="lbl-junior-level-text">Junior Wealth Level</span>
+                    <h4 style="margin: 0.1rem 0; font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--text-main);" id="kids-rank-title">Level 1: Copper Piggy</h4>
+                    <p style="margin: 0; font-size: 0.78rem; color: var(--text-muted);" id="kids-rank-desc">Deposit coins in your piggy jars to level up your treasure chest!</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Add Insurance Policy Card -->
+              <div class="card glass-card">
+                <div class="card-header">
+                  <h3 class="card-title" id="lbl-add-policy-title">🛡️ Secure New Insurance Safeguard</h3>
+                  <span class="card-icon text-success">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </span>
+                </div>
+                <p class="card-subtitle" id="lbl-add-policy-subtitle">Log an active insurance policy to protect your assets and evaluate coverages.</p>
+                
+                <div class="grid grid-2 no-gap" style="gap: 1rem; margin-top: 1rem;">
+                  <div class="input-group">
+                    <label for="ins-name" id="lbl-ins-name-label">Policy Name / Plan</label>
+                    <input type="text" id="ins-name" class="input-field" placeholder="e.g. PRUActive Term" value="">
+                  </div>
+                  <div class="input-group">
+                    <label for="ins-insurer" id="lbl-ins-insurer-label">Insurer</label>
+                    <select id="ins-insurer" class="input-field">
+                      <option value="AIA">AIA Singapore</option>
+                      <option value="Great Eastern">Great Eastern</option>
+                      <option value="Prudential">Prudential Singapore</option>
+                      <option value="Singlife">Singlife</option>
+                      <option value="NTUC Income">NTUC Income</option>
+                      <option value="HSBC Life">HSBC Life</option>
+                      <option value="Manulife">Manulife</option>
+                      <option value="Other">Other Insurer</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid grid-3 no-gap" style="gap: 0.75rem;">
+                  <div class="input-group">
+                    <label for="ins-type" id="lbl-ins-type-label">Coverage Vector</label>
+                    <select id="ins-type" class="input-field">
+                      <option value="life">💀 Life / Death</option>
+                      <option value="critical">⚡ Critical Illness</option>
+                      <option value="medical">🏥 Medical / Shield</option>
+                      <option value="disability">♿ Disability Care</option>
+                      <option value="savings">🐷 Endowment/Savings</option>
+                    </select>
+                  </div>
+                  <div class="input-group">
+                    <label for="ins-sum-assured" id="lbl-ins-sum-assured-label">Sum Assured (S$)</label>
+                    <input type="number" id="ins-sum-assured" class="input-field" placeholder="e.g. 250000" min="0">
+                  </div>
+                  <div class="input-group">
+                    <label for="ins-premium" id="lbl-ins-premium-label">Premium (S$)</label>
+                    <input type="number" id="ins-premium" class="input-field" placeholder="e.g. 120" min="0">
+                  </div>
+                </div>
+
+                <div class="grid grid-2 no-gap" style="gap: 1rem;">
+                  <div class="input-group">
+                    <label for="ins-frequency" id="lbl-ins-frequency-label">Premium Cycle</label>
+                    <select id="ins-frequency" class="input-field">
+                      <option value="monthly">🔄 Monthly</option>
+                      <option value="annual">📅 Annual</option>
+                    </select>
+                  </div>
+                  <div class="input-group">
+                    <label for="ins-cash-value" id="lbl-ins-cash-value-label">Cash Value / Payout (S$)</label>
+                    <input type="number" id="ins-cash-value" class="input-field" placeholder="0 if Term plan" min="0">
+                  </div>
+                </div>
+
+                <button class="btn-primary" onclick="addInsurancePolicy()" style="margin-top: 1rem; width:100%; display: flex; align-items:center; justify-content:center; gap:0.5rem; padding: 0.75rem; border-radius: var(--border-radius-md); font-weight:600;">
+                  <span id="btn-add-policy-text">🛡️ Add Active Policy Safeguard</span>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Right Column: Protection summary & Policy Ledger List -->
+            <div class="flex-column gap-4" style="display: flex; flex-direction: column; gap: 1.5rem;">
+              
+              <!-- Insurance Protection Summary Card -->
+              <div class="card glass-card">
+                <div class="card-header">
+                  <h3 class="card-title" id="lbl-protection-title">Insurance Protection & Safeguards</h3>
+                  <span class="card-icon text-accent">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  </span>
+                </div>
+                <p class="card-subtitle" id="lbl-protection-subtitle">An audit of your active safety vectors against standard Singapore protection guidelines.</p>
+                
+                <div class="insurance-stats-row" style="display: flex; gap: 1.5rem; background: rgba(255,255,255,0.02); border:1px solid var(--card-border); padding:1.2rem; border-radius:var(--border-radius-md); margin: 1rem 0;">
+                  <div style="flex-grow:1; text-align:center;">
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500;" id="lbl-annual-premiums">Total Annual Premiums</span>
+                    <h3 style="margin:0.25rem 0 0 0; font-family:var(--font-display); font-size:1.4rem; font-weight:800; color:var(--color-primary);" id="ins-total-annual-premium">S$ 0</h3>
+                  </div>
+                  <div style="width:1px; background:var(--card-border);"></div>
+                  <div style="flex-grow:1; text-align:center;">
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500;" id="lbl-accumulated-cash">Accumulated Cash Value</span>
+                    <h3 style="margin:0.25rem 0 0 0; font-family:var(--font-display); font-size:1.4rem; font-weight:800; color:var(--color-success);" id="ins-total-cash-value">S$ 0</h3>
+                  </div>
+                </div>
+
+                <!-- Coverage risk ratios progress list -->
+                <div style="display: flex; flex-direction: column; gap: 0.95rem;">
+                  <!-- Life Protection Vector -->
+                  <div>
+                    <div style="display: flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.25rem;">
+                      <span style="font-weight:600; color:var(--text-main);" id="lbl-life-shield">💀 Life Coverage (Recommended: 10x Income)</span>
+                      <span id="ins-ratio-life">S$ 0 / S$ 0</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); height:8px; border-radius:10px; overflow:hidden;">
+                      <div id="ins-progress-life" style="height:100%; width:0%; background:var(--color-primary); border-radius:10px; transition:width 0.4s ease;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Critical Illness Protection Vector -->
+                  <div>
+                    <div style="display: flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.25rem;">
+                      <span style="font-weight:600; color:var(--text-main);" id="lbl-ci-shield">⚡ Critical Illness (Recommended: 4x Income)</span>
+                      <span id="ins-ratio-critical">S$ 0 / S$ 0</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); height:8px; border-radius:10px; overflow:hidden;">
+                      <div id="ins-progress-critical" style="height:100%; width:0%; background:var(--color-accent); border-radius:10px; transition:width 0.4s ease;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Medical Shield Protection Vector -->
+                  <div>
+                    <div style="display: flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.25rem;">
+                      <span style="font-weight:600; color:var(--text-main);" id="lbl-medical-shield">🏥 Integrated Shield Plan (Recommended: Active)</span>
+                      <span id="ins-ratio-medical" class="text-success" style="font-weight:700;">No Active Policy</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); height:8px; border-radius:10px; overflow:hidden;">
+                      <div id="ins-progress-medical" style="height:100%; width:0%; background:var(--color-success); border-radius:10px; transition:width 0.4s ease;"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="input-hint" style="margin-top: 1.2rem; font-size: 0.75rem; color:var(--text-muted); line-height:1.45;" id="ins-audit-feedback">
+                  🛡️ Complete your personal demographics and input your policies to generate a live, contextual audit of your insurance portfolio.
+                </div>
+              </div>
+
+              <!-- Active Policies Ledger Card -->
+              <div class="card glass-card" style="flex-grow:1; display:flex; flex-direction:column; min-height: 250px;">
+                <h3 class="card-title" id="lbl-ledger-title">📋 Safeguard Policies Ledger</h3>
+                <p class="card-subtitle" id="lbl-ledger-subtitle">Detailed ledger list of all currently tracked insurance policy protections.</p>
+                
+                <div style="overflow-x:auto; margin-top: 0.75rem; flex-grow:1; border: 1px solid var(--card-border); border-radius:var(--border-radius-md); background: rgba(0,0,0,0.1);">
+                  <table style="width:100%; border-collapse: collapse; font-size:0.82rem; text-align:left;" id="insurance-table">
+                    <thead>
+                      <tr style="border-bottom:1.5px solid var(--card-border); background:rgba(255,255,255,0.02);">
+                        <th style="padding:0.75rem 0.85rem;" id="tbl-th-policy">Policy Details</th>
+                        <th style="padding:0.75rem 0.85rem;" id="tbl-th-insurer">Insurer</th>
+                        <th style="padding:0.75rem 0.85rem;" id="tbl-th-coverage">Sum Assured</th>
+                        <th style="padding:0.75rem 0.85rem;" id="tbl-th-premium">Premium</th>
+                        <th style="padding:0.75rem 0.1rem; text-align:center;" id="tbl-th-action">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="insurance-ledger-body">
+                      <!-- Populated dynamically by JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
             </div>
 
           </div>

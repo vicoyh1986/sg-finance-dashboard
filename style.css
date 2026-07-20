@@ -2010,3 +2010,431 @@ input[type="checkbox"]:checked + .switch-slider::before {
 }
 
 
+/* ==========================================================================
+   💾 Premium Top-Right Save Button & Toast Notifications
+   ========================================================================== */
+.btn-save-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--color-primary);
+  border: 1.2px solid var(--color-primary);
+  padding: 0.5rem 0.95rem;
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.05);
+}
+
+.btn-save-top:hover {
+  background: var(--color-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.25);
+}
+
+.btn-save-top:active {
+  transform: translateY(0);
+}
+
+.btn-save-top.saved {
+  background: var(--color-success) !important;
+  color: white !important;
+  border-color: var(--color-success) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3) !important;
+  animation: save-success-pulse 1.5s ease;
+}
+
+.btn-save-top.saved svg {
+  transform: scale(1.15) rotate(360deg);
+  transition: transform 0.4s ease;
+}
+
+@keyframes save-success-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* Glassmorphic Toast Slide-down alert */
+.custom-toast {
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 12, 0.85);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 15px rgba(16, 185, 129, 0.15);
+  backdrop-filter: blur(16px);
+  color: var(--text-main);
+  padding: 1rem 1.8rem;
+  border-radius: var(--border-radius-md);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.custom-toast.active {
+  top: 30px;
+}
+
+.toast-icon {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--color-success);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+
+/* ==========================================================================
+   🧸 Interactive Kids Version Toggle Switch
+   ========================================================================== */
+.kids-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-smooth);
+}
+
+.kids-toggle-container:hover {
+  border-color: rgba(255, 0, 127, 0.3);
+  background: rgba(255, 0, 127, 0.02);
+}
+
+.kids-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.kids-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.kids-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid var(--card-border);
+  transition: .35s ease;
+  border-radius: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.kids-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 2.5px;
+  background-color: var(--text-main);
+  transition: .35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 50%;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.kids-icon-baby, .kids-icon-adult {
+  font-size: 0.8rem;
+  user-select: none;
+  z-index: 1;
+  transition: opacity 0.25s ease;
+}
+
+.kids-icon-baby {
+  opacity: 0.5;
+  margin-left: 2px;
+}
+
+.kids-icon-adult {
+  opacity: 1;
+  margin-right: 2px;
+}
+
+.kids-toggle-switch input:checked + .kids-toggle-slider {
+  background-color: rgba(255, 0, 127, 0.15);
+  border-color: #ff007f;
+}
+
+.kids-toggle-switch input:checked + .kids-toggle-slider:before {
+  transform: translateX(23px);
+  background-color: #ff007f;
+  box-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
+}
+
+.kids-toggle-switch input:checked + .kids-toggle-slider .kids-icon-baby {
+  opacity: 1;
+}
+
+.kids-toggle-switch input:checked + .kids-toggle-slider .kids-icon-adult {
+  opacity: 0.4;
+}
+
+.kids-toggle-label {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: var(--transition-smooth);
+}
+
+.kids-toggle-switch input:checked ~ .kids-toggle-label {
+  color: #ff007f;
+  text-shadow: 0 0 8px rgba(255,0,127,0.25);
+}
+
+
+/* ==========================================================================
+   🍭 Interactive Kids Mode Overriding Theme System (Junior Wealth Mode)
+   ========================================================================== */
+body.kids-mode-active {
+  --color-primary: #ff007f !important; /* Sweet Candy Pink */
+  --color-accent: #00ffff !important;  /* Magic Aqua Cyan */
+  --color-success: #39ff14 !important; /* Laser Neon Green */
+  --color-danger: #ff3131 !important;
+  --primary-glow: 0 0 18px rgba(255, 0, 127, 0.35) !important;
+  --accent-glow: 0 0 18px rgba(0, 240, 255, 0.35) !important;
+  --success-glow: 0 0 18px rgba(57, 255, 20, 0.35) !important;
+  
+  --card-bg: rgba(20, 12, 32, 0.55) !important;
+  --card-border: rgba(255, 0, 127, 0.2) !important;
+  --border-radius-md: 18px !important;
+  --border-radius-lg: 26px !important;
+  --font-display: 'Fredoka', 'Outfit', sans-serif !important;
+  --font-body: 'Nunito', 'Inter', sans-serif !important;
+}
+
+body.kids-mode-active .glass-card {
+  border-width: 1.8px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255,255,255,0.05);
+  background: linear-gradient(145deg, rgba(30, 15, 45, 0.6) 0%, rgba(15, 10, 30, 0.6) 100%) !important;
+}
+
+body.kids-mode-active .sidebar {
+  border-right: 2px dashed rgba(255, 0, 127, 0.25) !important;
+  background: rgba(14, 8, 25, 0.9) !important;
+}
+
+body.kids-mode-active .logo-icon {
+  background: linear-gradient(135deg, #ff007f 0%, #00ffff 100%) !important;
+  color: white !important;
+  transform: rotate(-10deg) scale(1.1) !important;
+  animation: logo-wiggle 3s ease infinite alternate;
+}
+
+@keyframes logo-wiggle {
+  0% { transform: rotate(-10deg) scale(1.1); }
+  100% { transform: rotate(10deg) scale(1.1); }
+}
+
+body.kids-mode-active .logo-text {
+  background: linear-gradient(135deg, #ff007f 0%, #00ffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: var(--font-display);
+  font-weight: 800 !important;
+  letter-spacing: 0.05em;
+}
+
+body.kids-mode-active .nav-item {
+  border-radius: 14px !important;
+}
+
+body.kids-mode-active .nav-item.active {
+  background: linear-gradient(135deg, rgba(255, 0, 127, 0.15) 0%, rgba(0, 240, 255, 0.05) 100%) !important;
+  border-left: 5px solid #ff007f !important;
+  color: #ff007f !important;
+  box-shadow: 0 4px 15px rgba(255,0,127,0.15);
+}
+
+body.kids-mode-active .quick-stat-pill {
+  border-radius: 12px !important;
+  border-color: rgba(0, 240, 255, 0.25) !important;
+  background: rgba(0, 240, 255, 0.05) !important;
+}
+
+body.kids-mode-active .goal-progress-banner {
+  border: 1.8px dashed rgba(255, 0, 127, 0.25) !important;
+  border-radius: var(--border-radius-md) !important;
+}
+
+body.kids-mode-active .progress-bar-fill {
+  background: linear-gradient(90deg, #ff007f 0%, #00ffff 100%) !important;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.6) !important;
+}
+
+body.kids-mode-active .card-header-compact {
+  border-bottom-style: dashed !important;
+}
+
+body.kids-mode-active h1, body.kids-mode-active h2, body.kids-mode-active h3, body.kids-mode-active h4 {
+  text-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+body.kids-mode-active .btn-primary {
+  background: linear-gradient(135deg, #ff007f 0%, #a855f7 100%) !important;
+  box-shadow: 0 6px 18px rgba(255, 0, 127, 0.3) !important;
+  border-radius: 14px !important;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+body.kids-mode-active .btn-primary:hover {
+  transform: translateY(-3px) scale(1.03) !important;
+  box-shadow: 0 8px 22px rgba(255, 0, 127, 0.45) !important;
+}
+
+
+/* ==========================================================================
+   🛡️ Insurance Policy Styles and Table Ledger Rules
+   ========================================================================== */
+.insurer-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+}
+
+.insurer-badge.aia, .insurer-badge.aiasingapore {
+  color: #d11242;
+  background: rgba(209, 18, 66, 0.1);
+  border-color: rgba(209, 18, 66, 0.25);
+}
+
+.insurer-badge.ge, .insurer-badge.greateastern {
+  color: #ff3c00;
+  background: rgba(255, 60, 0, 0.1);
+  border-color: rgba(255, 60, 0, 0.25);
+}
+
+.insurer-badge.pru, .insurer-badge.prudentialsingapore {
+  color: #ff0000;
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.25);
+}
+
+.insurer-badge.singlife {
+  color: #06b6d4;
+  background: rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.25);
+}
+
+.insurer-badge.income, .insurer-badge.ntucincome {
+  color: #eab308;
+  background: rgba(234, 179, 8, 0.1);
+  border-color: rgba(234, 179, 8, 0.25);
+}
+
+.insurer-badge.hsbc, .insurer-badge.hsbclife {
+  color: #ff0000;
+  background: rgba(255, 0, 0, 0.08);
+  border-color: rgba(255, 0, 0, 0.2);
+}
+
+.insurer-badge.manulife {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.policy-pill {
+  display: inline-flex;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.policy-pill.life {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+}
+
+.policy-pill.critical {
+  background: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
+}
+
+.policy-pill.medical {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.policy-pill.disability {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.policy-pill.savings {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+#insurance-table tbody tr {
+  border-bottom: 1px solid var(--card-border);
+  transition: var(--transition-smooth);
+}
+
+#insurance-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.btn-delete-policy {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.72rem;
+  transition: var(--transition-smooth);
+  margin: 0 auto;
+}
+
+.btn-delete-policy:hover {
+  background: var(--color-danger);
+  color: white;
+  transform: scale(1.1);
+}
+
+
