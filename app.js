@@ -1858,6 +1858,246 @@ function updateCharts(projectionData = [], currentAssets = 0, cash = 0, cpf = 0,
   });
 }
 
+// ==========================================================================
+// 🚀 PulseAI Chatbot Net Worth Allocation Survey State & Engine
+// ==========================================================================
+
+let allocationSurvey = {
+  active: false,
+  step: 'IDLE', // 'IDLE', 'TOTAL', 'CASH', 'CPF', 'INVESTMENTS', 'PROPERTY', 'LIABILITIES'
+  totalWealth: 0,
+  cash: 0,
+  cpf: 0,
+  investments: 0,
+  property: 0,
+  liabilities: 0
+};
+
+// Start the conversational allocation survey
+function startAllocationSurvey() {
+  allocationSurvey.active = true;
+  allocationSurvey.step = 'TOTAL';
+  setTypingIndicator(false);
+  
+  const welcomeMsg = `🚀 **[PulseAI Wealth Allocation Wizard]**
+
+Welcome to the Fast Net Worth Allocation Wizard! I can help you re-allocate your entire dashboard in under 60 seconds through a quick series of simple questions.
+
+To begin, **what is your total estimated net worth (wealth) in S$?**
+*(e.g., S$ 300,000, 300k, 1.2m, or $500,000. You can type \`cancel\` to abort at any time.)*`;
+  
+  addChatMessage('assistant', welcomeMsg);
+}
+
+// Parse input strings with dollar signs, commas, k/m multipliers, and percentages
+function parseInputToValue(input, totalBase = null) {
+  let valStr = input.trim().toLowerCase();
+  
+  if (valStr.includes('%')) {
+    let pct = parseFloat(valStr.replace(/[^0-9.]/g, '')) || 0;
+    if (totalBase) {
+      return (pct / 100) * totalBase;
+    }
+    return pct;
+  }
+  
+  valStr = valStr.replace(/s\$/g, '').replace(/\$/g, '').replace(/,/g, '');
+  
+  if (valStr.endsWith('k')) {
+    let num = parseFloat(valStr.replace(/k/g, '')) || 0;
+    return num * 1000;
+  }
+  
+  if (valStr.endsWith('m')) {
+    let num = parseFloat(valStr.replace(/m/g, '')) || 0;
+    return num * 1000000;
+  }
+  
+  return parseFloat(valStr) || 0;
+}
+
+// Handle inputs
+function handleAllocationSurveyStep(input) {
+  setTypingIndicator(false);
+  const currentStep = allocationSurvey.step;
+  
+  if (currentStep === 'TOTAL') {
+    const val = parseInputToValue(input);
+    if (val <= 0) {
+      addChatMessage('assistant', "⚠️ **Invalid Input**: Please enter a valid non-zero wealth total (e.g. S$ 300,000 or 500k).");
+      return;
+    }
+    allocationSurvey.totalWealth = val;
+    allocationSurvey.step = 'CASH';
+    
+    addChatMessage('assistant', `💰 **Total Wealth Baseline established at ${formatMoney(val)}.**
+
+Next, how much of this total is in **Liquid Cash & Bank Accounts**?
+*(You can specify an exact amount like \`S$ 50,000\` or a percentage of your total like \`15%\`)*`);
+    
+  } else if (currentStep === 'CASH') {
+    const val = parseInputToValue(input, allocationSurvey.totalWealth);
+    if (val < 0) {
+      addChatMessage('assistant', "⚠️ **Invalid Input**: Please enter a valid cash balance or percentage (e.g. S$ 50k or 15%).");
+      return;
+    }
+    allocationSurvey.cash = val;
+    allocationSurvey.step = 'CPF';
+    
+    addChatMessage('assistant', `🪙 **Cash & Bank accounts set to ${formatMoney(val)} (${((val / allocationSurvey.totalWealth) * 100).toFixed(1)}% of total).**
+
+Now, how much of your wealth is in your **CPF Accounts (OA, SA, MA, RA)**?
+*(Specify an amount like \`S$ 120,000\` or a percentage like \`40%\`)*`);
+    
+  } else if (currentStep === 'CPF') {
+    const val = parseInputToValue(input, allocationSurvey.totalWealth);
+    if (val < 0) {
+      addChatMessage('assistant', "⚠️ **Invalid Input**: Please enter a valid CPF balance or percentage (e.g. S$ 120k or 40%).");
+      return;
+    }
+    allocationSurvey.cpf = val;
+    allocationSurvey.step = 'INVESTMENTS';
+    
+    addChatMessage('assistant', `🌳 **CPF accounts set to ${formatMoney(val)} (${((val / allocationSurvey.totalWealth) * 100).toFixed(1)}% of total).**
+
+Next, how much of your wealth is in **Investments & Stock Portfolios**?
+*(Specify an amount like \`S$ 80,000\` or a percentage like \`25%\`)*`);
+    
+  } else if (currentStep === 'INVESTMENTS') {
+    const val = parseInputToValue(input, allocationSurvey.totalWealth);
+    if (val < 0) {
+      addChatMessage('assistant', "⚠️ **Invalid Input**: Please enter a valid investment balance or percentage (e.g. S$ 80k or 25%).");
+      return;
+    }
+    allocationSurvey.investments = val;
+    allocationSurvey.step = 'PROPERTY';
+    
+    addChatMessage('assistant', `⛵ **Investment portfolios set to ${formatMoney(val)} (${((val / allocationSurvey.totalWealth) * 100).toFixed(1)}% of total).**
+
+How about **Real Estate / Property Valuation**?
+*(What is the market value of your property, if any? Type \`0\` if you do not own real estate, or enter an amount like \`S$ 600,000\`)*`);
+    
+  } else if (currentStep === 'PROPERTY') {
+    const val = parseInputToValue(input);
+    if (val < 0) {
+      addChatMessage('assistant', "⚠️ **Invalid Input**: Please enter a valid property value (e.g. S$ 600,000 or 0).");
+      return;
+    }
+    allocationSurvey.property = val;
+    allocationSurvey.step = 'LIABILITIES';
+    
+    addChatMessage('assistant', `🏢 **Property Valuation set to ${formatMoney(val)}.**
+
+Finally, what are your **Outstanding Liabilities & Debt**?
+*(This includes property mortgage, car loans, personal loans, or credit card debts. Type \`0\` if you are completely debt-free, or enter an amount like \`S$ 400,000\`)*`);
+    
+  } else if (currentStep === 'LIABILITIES') {
+    const val = parseInputToValue(input);
+    if (val < 0) {
+      addChatMessage('assistant', "⚠️ **Invalid Input**: Please enter a valid debt value (e.g. S$ 400,000 or 0).");
+      return;
+    }
+    allocationSurvey.liabilities = val;
+    
+    // Complete the allocation
+    applySurveyAllocationToState();
+  }
+}
+
+// Synchronize state and trigger redraws
+function applySurveyAllocationToState() {
+  const cash = allocationSurvey.cash;
+  const cpf = allocationSurvey.cpf;
+  const inv = allocationSurvey.investments;
+  const prop = allocationSurvey.property;
+  const debt = allocationSurvey.liabilities;
+  
+  // Apply cash
+  state.banks.dbs.balance = cash;
+  state.banks.uob.balance = 0;
+  state.banks.ocbc.balance = 0;
+  state.banks.scb.balance = 0;
+  state.banks.hsbc.balance = 0;
+  state.banks.citi.balance = 0;
+  state.banks.maybank.balance = 0;
+  state.banks.boc.balance = 0;
+  
+  // Apply CPF (Standard proportions: 60% OA, 25% SA, 15% MA)
+  state.cpf.oa = Math.round(cpf * 0.60);
+  state.cpf.sa = Math.round(cpf * 0.25);
+  state.cpf.ma = Math.round(cpf * 0.15);
+  state.cpf.ra = 0;
+  
+  // Apply Investments
+  state.assets.invStocks = inv;
+  state.assets.invCrypto = 0;
+  state.assets.invSrs = 0;
+  state.assets.invOther = 0;
+  
+  // Apply Real Estate
+  state.assets.propValuation = prop;
+  
+  // Apply Debts
+  state.assets.propLoan = debt;
+  state.assets.loanCar = 0;
+  state.assets.loanPersonal = 0;
+  state.assets.loanCc = 0;
+  
+  // Calculate computed net worth
+  const grossAssets = cash + cpf + inv + prop;
+  const computedNW = grossAssets - debt;
+  
+  // Save, synchronize DOM fields, and recalculate everything
+  saveState();
+  syncInputsDOM();
+  updateCalculations();
+  
+  // Renders beautiful success card in Chat
+  const resultCardHtml = `✨ **Wealth Allocation Completed!**
+
+Your entire financial pulse dashboard has been synchronized with your profile.
+
+<div class="survey-result-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); padding: 1.2rem; border-radius: var(--border-radius-md); margin-top: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.25);">
+  <h4 style="margin: 0 0 1rem 0; color: var(--color-primary); font-family: var(--font-display); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+    👑 New Allocation Summary
+  </h4>
+  <div class="survey-grid" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-muted);">🪙 Liquid Cash:</span>
+      <strong style="color: var(--text-main);">${formatMoney(cash)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-muted);">🌳 CPF Portfolio:</span>
+      <strong style="color: var(--text-main);">${formatMoney(cpf)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-muted);">⛵ Stock Investments:</span>
+      <strong style="color: var(--text-main);">${formatMoney(inv)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-muted);">🏢 Real Estate:</span>
+      <strong style="color: var(--text-main);">${formatMoney(prop)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-danger);">💸 Outstanding Debts:</span>
+      <strong style="color: var(--color-danger);">${formatMoney(debt)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 1rem; font-weight: 800; color: var(--color-success); padding-top: 0.5rem; border-top: 1px dashed var(--card-border);">
+      <span>👑 Computed Net Worth:</span>
+      <span>${formatMoney(computedNW)}</span>
+    </div>
+  </div>
+</div>
+
+*Head over to the **Dashboard** or **Assets & Loans** tabs to view your newly updated charts and projection schedules!*`;
+
+  addChatMessage('assistant', resultCardHtml);
+  
+  // Clear survey mode
+  allocationSurvey.active = false;
+  allocationSurvey.step = 'IDLE';
+}
+
 // ==========================================
 // PulseAI Coach - Interactive AI Control
 // ==========================================
@@ -2042,6 +2282,37 @@ function sendChatMessage() {
   // Trigger loading
   setTypingIndicator(true);
 
+  // Check if survey initiation is requested
+  const lowerText = text.toLowerCase();
+  if (!allocationSurvey.active && (
+    lowerText.includes('allocate') || 
+    lowerText.includes('survey') || 
+    lowerText.includes('wizard') || 
+    lowerText.includes('setup') || 
+    lowerText.includes('fast-allocate') ||
+    lowerText.includes('what is your total') ||
+    lowerText.includes('series of questions')
+  )) {
+    startAllocationSurvey();
+    return;
+  }
+
+  if (allocationSurvey.active) {
+    if (lowerText === 'cancel' || lowerText === 'abort' || lowerText === 'exit') {
+      allocationSurvey.active = false;
+      allocationSurvey.step = 'IDLE';
+      setTypingIndicator(false);
+      addChatMessage('assistant', "🛑 **Wizard Aborted**: Fast Net Worth Allocation survey has been terminated. You can type `allocate` to restart it at any time!");
+      return;
+    }
+    
+    // Slight delay for loading feel
+    setTimeout(() => {
+      handleAllocationSurveyStep(text);
+    }, 500);
+    return;
+  }
+
   // Decide mode (Gemini vs Local Rules)
   const hasKey = state.chat && state.chat.apiKey && state.chat.apiKey.startsWith('AIzaSy');
   if (hasKey) {
@@ -2056,6 +2327,15 @@ function sendChatMessage() {
 
 // One-click quick analysis prompts
 function runQuickPrompt(type) {
+  if (type === 'wizard') {
+    addChatMessage('user', "I want to fast-allocate my net worth through your wizard!");
+    setTypingIndicator(true);
+    setTimeout(() => {
+      startAllocationSurvey();
+    }, 500);
+    return;
+  }
+
   const prompts = {
     budget: "Please perform a detailed audit of my Needs/Wants/Savings budget health.",
     goal: "Evaluate my current Goal Net Worth projections and give specific timeline advice.",

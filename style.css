@@ -2437,4 +2437,28 @@ body.kids-mode-active .btn-primary:hover {
   transform: scale(1.1);
 }
 
+/* 🚀 Interactive Chatbot Survey Allocation Summary Card styling */
+.survey-result-card {
+  animation: surveyCardSlideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+  border: 1.5px solid var(--card-border) !important;
+  border-radius: var(--border-radius-md) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3) !important;
+  padding: 1.25rem !important;
+  margin: 1.25rem 0 !important;
+}
+
+@keyframes surveyCardSlideIn {
+  from { opacity: 0; transform: translateY(15px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.survey-grid div {
+  transition: background-color 0.2s ease;
+}
+
+.survey-grid div:hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
 
