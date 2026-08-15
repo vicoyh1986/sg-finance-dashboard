@@ -753,6 +753,25 @@ function setupInputListeners() {
       });
     }
   });
+
+  // Jiabao CPF Strategy Hub live input listeners
+  const jiabaoInputs = [
+    'jiabao-oa-transfer-input',
+    'jiabao-cpflife-tier',
+    'jiabao-cpflife-plan',
+    'jiabao-prop-oa-used'
+  ];
+  jiabaoInputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => {
+        updateJiabaoCpfHub();
+      });
+      el.addEventListener('change', () => {
+        updateJiabaoCpfHub();
+      });
+    }
+  });
 }
 
 // --- Import / Export / Reset Profile data (Saveable) ---
@@ -1181,6 +1200,9 @@ function updateCalculations() {
     bonusPanel.style.display = currentCpfTotal > 0 ? 'flex' : 'none';
   }
 
+  // 2b. Update TikToker Jiabao CPF Optimization Suite
+  updateJiabaoCpfHub();
+
   // 3. Asset & Loan summaries
   const stocks = state.assets.invStocks;
   const crypto = state.assets.invCrypto;
@@ -1282,6 +1304,169 @@ function updateCalculations() {
 
   // 6. Draw / Update Charts
   updateCharts(projection.dataPoints, grossAssets, totalLiquidCash, currentCpfTotal, totalInvestments, propVal);
+}
+
+// =========================================================================
+// 🔥 TikToker Jiabao CPF Strategy Hub & Simulator Functions
+// =========================================================================
+function updateJiabaoCpfHub() {
+  const maBal = state.cpf.ma || 0;
+  const oaBal = state.cpf.oa || 0;
+  const saBal = state.cpf.sa || 0;
+  const raBal = state.cpf.ra || 0;
+  const age = state.cpf.age || 28;
+  const salary = state.cpf.salary || 6200;
+
+  const BHS = 75000;
+  const FRS = 213000;
+  const ERS = 426000;
+
+  // 1. MA to BHS Overflow Engine
+  const maPct = Math.min(100, Math.max(0, (maBal / BHS) * 100));
+  const maGap = Math.max(0, BHS - maBal);
+  const rates = getCpfAllocations(age);
+  const monthlyContrib = Math.min(8000, salary) * (rates.total / 100);
+  const monthlyMa = monthlyContrib * rates.ma;
+
+  const maPctEl = document.getElementById('jiabao-ma-progress-pct');
+  const maBarEl = document.getElementById('jiabao-ma-progress-bar');
+  const maCurEl = document.getElementById('jiabao-ma-current-disp');
+  const maGapEl = document.getElementById('jiabao-ma-gap-val');
+  const maOverEl = document.getElementById('jiabao-ma-monthly-overflow');
+
+  if (maPctEl) maPctEl.innerText = `${maPct.toFixed(1)}%`;
+  if (maBarEl) maBarEl.style.width = `${maPct.toFixed(1)}%`;
+  if (maCurEl) maCurEl.innerText = `Current: ${formatMoney(maBal)}`;
+  if (maGapEl) maGapEl.innerText = maGap > 0 ? formatMoney(maGap) : 'Capped at BHS! 🎉';
+  if (maOverEl) maOverEl.innerText = `+${formatMoney(monthlyMa)} / mo`;
+
+  // 2. January vs Dec RSTU Timing Hack
+  const topUpAmt = 8000;
+  const decInterest = topUpAmt * 0.0408 * (1 / 12);
+  const janInterest = topUpAmt * 0.0408;
+  const diffInterest = janInterest - decInterest;
+
+  const rstuDecEl = document.getElementById('jiabao-rstu-dec-val');
+  const rstuJanEl = document.getElementById('jiabao-rstu-jan-val');
+  const rstuDiffEl = document.getElementById('jiabao-rstu-diff-val');
+
+  if (rstuDecEl) rstuDecEl.innerText = formatMoney(decInterest);
+  if (rstuJanEl) rstuJanEl.innerText = formatMoney(janInterest);
+  if (rstuDiffEl) rstuDiffEl.innerText = `+${formatMoney(diffInterest)} / yr`;
+
+  // 3. OA to SA Transfer Simulation
+  const transferInput = document.getElementById('jiabao-oa-transfer-input');
+  let transferAmt = transferInput ? parseFloat(transferInput.value) || 0 : 30000;
+  if (transferAmt < 0) transferAmt = 0;
+
+  const gain10 = transferAmt * (Math.pow(1.0408, 10) - Math.pow(1.025, 10));
+  const gain20 = transferAmt * (Math.pow(1.0408, 20) - Math.pow(1.025, 20));
+  const gain30 = transferAmt * (Math.pow(1.0408, 30) - Math.pow(1.025, 30));
+
+  const t10El = document.getElementById('jiabao-transfer-10yr');
+  const t20El = document.getElementById('jiabao-transfer-20yr');
+  const t30El = document.getElementById('jiabao-transfer-30yr');
+
+  if (t10El) t10El.innerText = `+${formatMoney(gain10)}`;
+  if (t20El) t20El.innerText = `+${formatMoney(gain20)}`;
+  if (t30El) t30El.innerText = `+${formatMoney(gain30)}`;
+
+  // 4. First S$60k Bonus Optimizer
+  const oaBonus = Math.min(20000, oaBal);
+  const samaBonus = Math.min(60000 - oaBonus, saBal + maBal + raBal);
+  const totalBonusPool = oaBonus + samaBonus;
+  const bonusCashYear = totalBonusPool * 0.01;
+
+  const oaBonusEl = document.getElementById('jiabao-oa-bonus-util');
+  const samaBonusEl = document.getElementById('jiabao-sama-bonus-util');
+  const totalBonusEl = document.getElementById('jiabao-total-bonus-pool');
+  const annualBonusEl = document.getElementById('jiabao-annual-free-bonus');
+  const bonusPillEl = document.getElementById('jiabao-bonus-status-pill');
+
+  if (oaBonusEl) oaBonusEl.innerText = `${formatMoney(oaBonus)} / S$ 20,000 (${((oaBonus / 20000) * 100).toFixed(0)}%)`;
+  if (samaBonusEl) samaBonusEl.innerText = `${formatMoney(samaBonus)} / S$ 40,000 (${((samaBonus / 40000) * 100).toFixed(0)}%)`;
+  if (totalBonusEl) totalBonusEl.innerText = `${formatMoney(totalBonusPool)} / S$ 60,000`;
+  if (annualBonusEl) annualBonusEl.innerText = `+${formatMoney(bonusCashYear)} / yr`;
+  if (bonusPillEl) {
+    if (totalBonusPool >= 60000) {
+      bonusPillEl.className = 'status-pill-jiabao success';
+      bonusPillEl.innerText = '✓ Full S$60k Bonus Interest Optimized!';
+    } else {
+      bonusPillEl.className = 'status-pill-jiabao warning';
+      bonusPillEl.innerText = `⚠️ Missing ${formatMoney(60000 - totalBonusPool)} to Maximize 1% Bonus`;
+    }
+  }
+
+  // 5. CPF LIFE Payout & 5-Year Deferment Matrix
+  const tierSelect = document.getElementById('jiabao-cpflife-tier');
+  const planSelect = document.getElementById('jiabao-cpflife-plan');
+  const tier = tierSelect ? tierSelect.value : 'frs';
+  const plan = planSelect ? planSelect.value : 'standard';
+
+  let basePayout65 = 1650;
+  if (tier === 'brs') basePayout65 = 850;
+  if (tier === 'ers') basePayout65 = 3300;
+
+  if (plan === 'basic') basePayout65 *= 0.88;
+  if (plan === 'escalating') basePayout65 *= 0.80;
+
+  const basePayout70 = basePayout65 * 1.35; // +35% boost for 5-year deferral
+
+  const p65El = document.getElementById('jiabao-payout-age65');
+  const p70El = document.getElementById('jiabao-payout-age70');
+
+  if (p65El) p65El.innerText = `${formatMoney(basePayout65)} / mo`;
+  if (p70El) p70El.innerText = `${formatMoney(basePayout70)} / mo`;
+
+  // 6. Accrued Interest Housing Calculator
+  const propOaInput = document.getElementById('jiabao-prop-oa-used');
+  let propOaUsed = propOaInput ? parseFloat(propOaInput.value) || 0 : 120000;
+  if (propOaUsed < 0) propOaUsed = 0;
+
+  const accrued10 = propOaUsed * (Math.pow(1.025, 10) - 1);
+  const totalRefund10 = propOaUsed + accrued10;
+
+  const acc10El = document.getElementById('jiabao-accrued-10yr');
+  const ref10El = document.getElementById('jiabao-total-refund-10yr');
+
+  if (acc10El) acc10El.innerText = formatMoney(acc10);
+  if (ref10El) ref10El.innerText = formatMoney(totalRefund10);
+}
+
+// Interactive Simulation Handlers for Jiabao Hub
+function simulateCapMaBhs() {
+  state.cpf.ma = 75000;
+  saveState();
+  syncInputsDOM();
+  updateCalculations();
+  showToastNotification("🌊 MediSave Capped at S$75,000! Future MA contributions now overflow into Special Account (SA) at 4.08% p.a.!");
+}
+
+function simulateJanuaryTopUp() {
+  state.cpf.sa = (state.cpf.sa || 0) + 8000;
+  saveState();
+  syncInputsDOM();
+  updateCalculations();
+  showToastNotification("📅 Applied S$8,000 January RSTU Top-Up to SA! Enjoyed 12 full months of compounding & S$8,000 tax relief!");
+}
+
+function simulateTransferOaSa() {
+  const transferInput = document.getElementById('jiabao-oa-transfer-input');
+  let amount = transferInput ? parseFloat(transferInput.value) || 0 : 30000;
+  if (amount <= 0) return;
+  if (state.cpf.oa < amount) {
+    amount = state.cpf.oa;
+  }
+  if (amount <= 0) {
+    showToastNotification("⚠️ Ordinary Account balance is S$0. No funds available to transfer.");
+    return;
+  }
+  state.cpf.oa -= amount;
+  state.cpf.sa = (state.cpf.sa || 0) + amount;
+  saveState();
+  syncInputsDOM();
+  updateCalculations();
+  showToastNotification(`🔄 Transferred ${formatMoney(amount)} from OA (2.50%) to SA (4.08%)! Compound yield permanently boosted by +1.58% p.a.!`);
 }
 
 // Calculate and update the Expense & Debt Advisor view
@@ -2092,10 +2277,242 @@ Your entire financial pulse dashboard has been synchronized with your profile.
 *Head over to the **Dashboard** or **Assets & Loans** tabs to view your newly updated charts and projection schedules!*`;
 
   addChatMessage('assistant', resultCardHtml);
+}
   
-  // Clear survey mode
-  allocationSurvey.active = false;
-  allocationSurvey.step = 'IDLE';
+// Try to parse direct natural-language wealth allocation commands
+function tryDirectAllocationParse(query) {
+  const q = query.toLowerCase();
+  
+  // Quick filters to confirm this is an allocation attempt
+  const isAllocationAttempt = 
+    q.includes('allocate') || 
+    q.includes('networth') || 
+    q.includes('net worth') || 
+    q.includes('set my wealth') || 
+    q.includes('change my wealth') ||
+    q.includes('set my networth') ||
+    q.includes('set my net worth') ||
+    q.includes('cpf put as') ||
+    q.includes('cash put as') ||
+    q.includes('investments put as');
+    
+  if (!isAllocationAttempt) return false;
+
+  // 1. Scan for specific categories
+  // CPF
+  const cpfRegex = /(?:cpf|c\.p\.f)\s*(?:put as|to|is|of|at)?\s*(?:s?\$)?\s*([0-9.]+(?:\s*[km])?)/i;
+  const cpfMatch = q.match(cpfRegex);
+  let cpfVal = -1;
+  if (cpfMatch) {
+    cpfVal = parseInputToValue(cpfMatch[1]);
+  }
+
+  // Cash
+  const cashRegex = /(?:cash|bank|liquid)\s*(?:put as|to|is|of|at)?\s*(?:s?\$)?\s*([0-9.]+(?:\s*[km])?)/i;
+  const cashMatch = q.match(cashRegex);
+  let cashVal = -1;
+  if (cashMatch) {
+    cashVal = parseInputToValue(cashMatch[1]);
+  }
+
+  // Investments
+  const invRegex = /(?:investments?|stocks?|portfolio|shares?)\s*(?:put as|to|is|of|at)?\s*(?:s?\$)?\s*([0-9.]+(?:\s*[km])?)/i;
+  const invMatch = q.match(invRegex);
+  let invVal = -1;
+  if (invMatch) {
+    invVal = parseInputToValue(invMatch[1]);
+  }
+
+  // Property
+  const propRegex = /(?:property|real\s*estate|house|home)\s*(?:put as|to|is|of|at)?\s*(?:s?\$)?\s*([0-9.]+(?:\s*[km])?)/i;
+  const propMatch = q.match(propRegex);
+  let propVal = -1;
+  if (propMatch) {
+    propVal = parseInputToValue(propMatch[1]);
+  }
+
+  // Debt/Liabilities
+  const debtRegex = /(?:debts?|loans?|liabilit(?:y|ies))\s*(?:put as|to|is|of|at)?\s*(?:s?\$)?\s*([0-9.]+(?:\s*[km])?)/i;
+  const debtMatch = q.match(debtRegex);
+  let debtVal = 0; // Default to 0
+  if (debtMatch) {
+    debtVal = parseInputToValue(debtMatch[1]);
+  }
+
+  // 2. Try to find the total wealth base
+  // e.g. "networth to $1.3m", "net worth of 500k", "allocate S$500k"
+  const totalRegex = /(?:net\s*worth|networth|wealth|total|allocate)\s*(?:to|of|is)?\s*(?:s?\$)?\s*([0-9.]+(?:\s*[km])?)/i;
+  const totalMatch = q.match(totalRegex);
+  
+  let totalWealth = 0;
+  if (totalMatch) {
+    totalWealth = parseInputToValue(totalMatch[1]);
+  } else {
+    // Look for any general money value that could be the total (e.g., "split $1.3m evenly")
+    const generalMoneyRegex = /(?:s?\$)\s*([0-9.]+(?:\s*[km])?)/i;
+    const genMatch = q.match(generalMoneyRegex);
+    if (genMatch) {
+      totalWealth = parseInputToValue(genMatch[1]);
+    }
+  }
+
+  if (totalWealth <= 0) {
+    // If no total was specified, but categories are specified, we can compute totalWealth as the sum of specified categories
+    let sumOfSpecified = 0;
+    let specifiedCount = 0;
+    if (cashVal !== -1) { sumOfSpecified += cashVal; specifiedCount++; }
+    if (cpfVal !== -1) { sumOfSpecified += cpfVal; specifiedCount++; }
+    if (invVal !== -1) { sumOfSpecified += invVal; specifiedCount++; }
+    if (propVal !== -1) { sumOfSpecified += propVal; specifiedCount++; }
+    
+    if (specifiedCount > 0) {
+      totalWealth = sumOfSpecified;
+    } else {
+      return false; // let normal chatbot handle it
+    }
+  }
+
+  // Recalculate percentages relative to total wealth if they were entered as percentages, or absolute values
+  if (cpfVal !== -1 && cpfVal < 100 && q.match(/(?:cpf|c\.p\.f).*?\d+(?:\.\d+)?\s*%/i)) {
+    cpfVal = Math.round((cpfVal / 100) * totalWealth);
+  }
+  if (cashVal !== -1 && cashVal < 100 && q.match(/(?:cash|bank|liquid).*?\d+(?:\.\d+)?\s*%/i)) {
+    cashVal = Math.round((cashVal / 100) * totalWealth);
+  }
+  if (invVal !== -1 && invVal < 100 && q.match(/(?:investments?|stocks?|portfolio|shares?).*?\d+(?:\.\d+)?\s*%/i)) {
+    invVal = Math.round((invVal / 100) * totalWealth);
+  }
+  if (propVal !== -1 && propVal < 100 && q.match(/(?:property|real\s*estate|house|home).*?\d+(?:\.\d+)?\s*%/i)) {
+    propVal = Math.round((propVal / 100) * totalWealth);
+  }
+
+  // 3. Handle splits and distributions
+  const wantsEvenSplit = q.includes('even split') || q.includes('split evenly') || q.includes('divided evenly') || q.includes('even');
+
+  let categories = [
+    { name: 'cash', val: cashVal, setter: (v) => { state.banks.dbs.balance = v; } },
+    { name: 'cpf', val: cpfVal, setter: (v) => { 
+        state.cpf.oa = Math.round(v * 0.60); 
+        state.cpf.sa = Math.round(v * 0.25); 
+        state.cpf.ma = Math.round(v * 0.15); 
+        state.cpf.ra = 0;
+      } 
+    },
+    { name: 'investments', val: invVal, setter: (v) => { state.assets.invStocks = v; } },
+    { name: 'property', val: propVal, setter: (v) => { state.assets.propValuation = v; } }
+  ];
+
+  // Calculate sum of explicitly allocated categories (excluding unset ones which are -1)
+  let allocatedSum = 0;
+  let explicitCount = 0;
+  categories.forEach(c => {
+    if (c.val !== -1) {
+      allocatedSum += c.val;
+      explicitCount++;
+    }
+  });
+
+  // Calculate remaining
+  let remainingWealth = totalWealth - allocatedSum;
+  if (remainingWealth < 0) remainingWealth = 0;
+
+  // Decide values for unset categories
+  let unsetCategories = categories.filter(c => c.val === -1);
+  
+  if (unsetCategories.length > 0) {
+    if (wantsEvenSplit || explicitCount > 0) {
+      // Split remaining wealth evenly across unset categories
+      let splitVal = Math.round(remainingWealth / unsetCategories.length);
+      unsetCategories.forEach(c => {
+        c.val = splitVal;
+      });
+    } else {
+      // Default Singapore standard split: Cash 20%, CPF 35%, Investments 45%, Property 0%
+      categories.forEach(c => {
+        if (c.name === 'cash') c.val = Math.round(totalWealth * 0.20);
+        else if (c.name === 'cpf') c.val = Math.round(totalWealth * 0.35);
+        else if (c.name === 'investments') c.val = Math.round(totalWealth * 0.45);
+        else if (c.name === 'property') c.val = 0;
+      });
+    }
+  }
+
+  // Apply values to state
+  categories.forEach(c => {
+    c.setter(c.val);
+  });
+
+  // Set liabilities
+  state.assets.propLoan = debtVal;
+  state.assets.loanCar = 0;
+  state.assets.loanPersonal = 0;
+  state.assets.loanCc = 0;
+
+  // Ensure other banks are zeroed out so the bank total matches Cash
+  state.banks.uob.balance = 0;
+  state.banks.ocbc.balance = 0;
+  state.banks.scb.balance = 0;
+  state.banks.hsbc.balance = 0;
+  state.banks.citi.balance = 0;
+  state.banks.maybank.balance = 0;
+  state.banks.boc.balance = 0;
+
+  // Recalculate computed Net Worth
+  const finalCash = categories.find(c => c.name === 'cash').val;
+  const finalCpf = categories.find(c => c.name === 'cpf').val;
+  const finalInv = categories.find(c => c.name === 'investments').val;
+  const finalProp = categories.find(c => c.name === 'property').val;
+  const computedNW = (finalCash + finalCpf + finalInv + finalProp) - debtVal;
+
+  // Trigger state saves, form syncing, and recalculations
+  saveState();
+  syncInputsDOM();
+  updateCalculations();
+
+  // Deactivate typing loader
+  setTypingIndicator(false);
+
+  // Print highly customized success message
+  const successMsg = `🪄 **Direct Net Worth Allocation Decoded!**
+
+I have parsed your natural-language request and immediately updated your dashboard variables.
+
+<div class="survey-result-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); padding: 1.2rem; border-radius: var(--border-radius-md); margin-top: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.25);">
+  <h4 style="margin: 0 0 1rem 0; color: var(--color-accent); font-family: var(--font-display); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+    🪄 Natural Language Balance Sheet
+  </h4>
+  <div class="survey-grid" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-muted);">🪙 Liquid Cash:</span>
+      <strong style="color: var(--text-main);">${formatMoney(finalCash)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-muted);">🌳 CPF Portfolio (OA/SA/MA):</span>
+      <strong style="color: var(--text-main);">${formatMoney(finalCpf)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-muted);">⛵ Investments:</span>
+      <strong style="color: var(--text-main);">${formatMoney(finalInv)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-muted);">🏢 Real Estate Assets:</span>
+      <strong style="color: var(--text-main);">${formatMoney(finalProp)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+      <span style="color: var(--text-danger);">💸 Liabilities & Loans:</span>
+      <strong style="color: var(--color-danger);">${formatMoney(debtVal)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 1rem; font-weight: 800; color: var(--color-success); padding-top: 0.5rem; border-top: 1px dashed var(--card-border);">
+      <span>👑 Computed Net Worth:</span>
+      <span>${formatMoney(computedNW)}</span>
+    </div>
+  </div>
+</div>
+
+*Dashboard inputs, charts, and 30-year projections have been updated instantly!*`;
+
+  addChatMessage('assistant', successMsg);
+  return true;
 }
 
 // ==========================================
@@ -2134,6 +2551,7 @@ function updateChatUI() {
 
   const names = {
     analyst: 'PulseAI Analyst (Ahmad)',
+    jiabao: 'TikToker Jiabao (CPF Strategist)',
     coach: 'PulseAI Coach (Sarah)',
     budgeter: 'FIRE Commander (Rex)'
   };
@@ -2164,6 +2582,7 @@ function changePersona() {
   // Post dynamic intro message
   const intros = {
     analyst: "🇸🇬 **[Pragmatic SG Analyst - Ahmad]**: Hello. I have set my persona to Pragmatic SG Analyst. I will focus on Singapore monetary standards, CPF capping structures, and direct mathematical allocations. What segment shall we audit first?",
+    jiabao: "📱 **[TikToker Jiabao - CPF Strategist 🇸🇬]**: What's up guys! Jiabao here! Ready to hack your CPF and optimize every single dollar with Singapore's best compound interest engine? Let's talk BHS overflows, January RSTU timing, OA-to-SA transfers, and CPF LIFE deferments! Ask me anything or click the quick prompts below! 🔥🚀",
     coach: "🏆 **[Wealth Coach - Sarah]**: Hey there! Sarah here! I'm absolutely thrilled to guide you on your journey! Let's dream big, build some amazing habits, and unlock your true financial freedom together! What exciting goals are we working on today? 🌟🚀",
     budgeter: "⚠️ **[FIRE Disciplinarian - Commander Rex]**: I am the FIRE Commander. I have assumed control of your advisory panel. Let's make one thing clear: wants are a luxury, and luxuries delay early retirement. If you are ready for the raw, unvarnished facts, click on budget audit or type below. No excuses! ⚔️"
   };
@@ -2282,6 +2701,11 @@ function sendChatMessage() {
   // Trigger loading
   setTypingIndicator(true);
 
+  // Try to parse direct natural-language wealth allocation commands (e.g. "change my networth to $1.3m even split, CPF put as $310k")
+  if (tryDirectAllocationParse(text)) {
+    return;
+  }
+
   // Check if survey initiation is requested
   const lowerText = text.toLowerCase();
   if (!allocationSurvey.active && (
@@ -2337,6 +2761,11 @@ function runQuickPrompt(type) {
   }
 
   const prompts = {
+    'jiabao-audit': "📱 Jiabao, perform a complete audit of my Singapore CPF compounding strategy across BHS, RSTU, and CPF LIFE!",
+    'jiabao-overflow': "🌊 Jiabao, explain the MediSave (MA) to BHS overflow mechanics and calculate my optimal overflow timeline.",
+    'jiabao-january': "📅 Jiabao, break down the January vs December RSTU top-up timing hack and the $16,000 tax relief benefit.",
+    'jiabao-cpflife': "👵 Jiabao, evaluate my CPF LIFE strategy: age 65 vs 70 deferment bonus (+35%) and Standard vs Basic vs Escalating plan!",
+    'jiabao-housing': "🏠 Jiabao, break down the CPF Accrued Interest trap: should I pay my HDB/property mortgage using OA or Cash?",
     budget: "Please perform a detailed audit of my Needs/Wants/Savings budget health.",
     goal: "Evaluate my current Goal Net Worth projections and give specific timeline advice.",
     banks: "Scan my active Singapore bank balances and interest rates for interest optimizations.",
@@ -2358,20 +2787,22 @@ function generateLocalResponse(query) {
   setTypingIndicator(false);
   const q = query.toLowerCase();
   let analysis = "";
+  const persona = state.chat ? state.chat.persona : 'analyst';
 
-  if (q.includes('budget') || q.includes('expense') || q.includes('spend') || q.includes('needs') || q.includes('wants') || q.includes('savings')) {
+  if (q.includes('jiabao') || (persona === 'jiabao' && (q.includes('cpf') || q.includes('overflow') || q.includes('bhs') || q.includes('rstu') || q.includes('life') || q.includes('defer') || q.includes('housing') || q.includes('accrued') || q.includes('audit')))) {
+    analysis = analyzeCpfJiabao(query);
+  } else if (q.includes('budget') || q.includes('expense') || q.includes('spend') || q.includes('needs') || q.includes('wants') || q.includes('savings')) {
     analysis = analyzeBudgetLocal();
   } else if (q.includes('goal') || q.includes('target') || q.includes('milestone') || q.includes('timeline') || q.includes('projection') || q.includes('retire')) {
     analysis = analyzeGoalLocal();
   } else if (q.includes('bank') || q.includes('multiplier') || q.includes('uob') || q.includes('dbs') || q.includes('ocbc') || q.includes('scb') || q.includes('interest')) {
     analysis = analyzeBanksLocal();
   } else if (q.includes('cpf') || q.includes('oa') || q.includes('sa') || q.includes('ma') || q.includes('ra') || q.includes('ordinary') || q.includes('special')) {
-    analysis = analyzeCpfLocal();
+    analysis = (persona === 'jiabao') ? analyzeCpfJiabao(query) : analyzeCpfLocal();
   } else {
     analysis = analyzeGeneralLocal();
   }
 
-  const persona = state.chat ? state.chat.persona : 'analyst';
   const responseText = wrapInPersonaTone(analysis, persona);
   addChatMessage('assistant', responseText);
 }
@@ -2385,6 +2816,12 @@ function wrapInPersonaTone(rawAnalysis, persona) {
   if (persona === 'analyst') {
     intro = "**[Pragmatic SG Analyst - Ahmad]**\n\nI have performed a structural audit of your financial parameters using local Singapore monetary standards. Let's look at the hard numbers:\n\n";
     outro = "\n\n**Action Summary**: These results are mathematically derived based on MAS-regulated boundaries. Please let me know if you would like me to adjust any projection constants.";
+  } else if (persona === 'jiabao') {
+    if (rawAnalysis.includes('TikToker Jiabao') || rawAnalysis.includes('Jiabao\'s')) {
+      return rawAnalysis;
+    }
+    intro = "📱 **[TikToker Jiabao (@gejiabao) - CPF & Wealth Strategist]** 🇸🇬\n\nHey guys, Jiabao here! Let's optimize your wealth building and compounding like a pro:\n\n";
+    outro = "\n\n🔥 **Jiabao's Action Rule**: Remember, CPF is Singapore's highest-yield risk-free compounding machine. Hit your BHS cap early, execute your January RSTU on Jan 1st, and let 4.08% work for you! Share this with someone who needs to hear it! 🚀📱";
   } else if (persona === 'coach') {
     intro = "🌟 **[Wealth Coach - Sarah]** 🌟\n\nHey there! I am so excited to look at your financial pulse today! Let's check out your numbers and celebrate your progress! 🎉\n\n";
     body = body
@@ -2403,6 +2840,136 @@ function wrapInPersonaTone(rawAnalysis, persona) {
   }
 
   return intro + body + outro;
+}
+
+// TikToker Jiabao CPF Optimization & Compounding Rules Engine
+function analyzeCpfJiabao(query) {
+  const q = (query || "").toLowerCase();
+  const age = state.cpf.age || 28;
+  const sal = state.cpf.salary || 6200;
+  const oa = state.cpf.oa || 0;
+  const sa = state.cpf.sa || 0;
+  const ma = state.cpf.ma || 0;
+  const ra = state.cpf.ra || 0;
+  const totalCpf = oa + sa + ma + ra;
+
+  const BHS = 75000;
+  const FRS = 213000;
+  const ERS = 426000;
+
+  const rates = getCpfAllocations(age);
+  const monthlyContrib = Math.min(8000, sal) * (rates.total / 100);
+  const monthlyMa = monthlyContrib * rates.ma;
+
+  // First $60k Bonus Interest Breakdown
+  const oaBonus = Math.min(20000, oa);
+  const samaBonus = Math.min(60000 - oaBonus, sa + ma + ra);
+  const totalBonusPool = oaBonus + samaBonus;
+  const bonusCashYear = totalBonusPool * 0.01;
+
+  if (q.includes('overflow') || q.includes('bhs') || q.includes('medisave')) {
+    const maGap = Math.max(0, BHS - ma);
+    return `🌊 **[Jiabao's MediSave to BHS Overflow Engine]** 🇸🇬
+
+🔥 **The BHS Secret**: The 2026 Basic Healthcare Sum (BHS) is **S$ 75,000**. Once your MediSave reaches this ceiling, your MediSave stops taking mandatory contributions.
+
+📊 **Your Current Numbers**:
+* **Current MediSave (MA)**: S$ ${ma.toLocaleString()} (${((ma / BHS) * 100).toFixed(1)}% of BHS)
+* **Gap to Cap BHS**: ${maGap > 0 ? `S$ ${maGap.toLocaleString()} remaining` : `🎉 ALREADY CAPPED AT BHS!`}
+* **Mandatory Monthly MA Inflow**: S$ ${Math.round(monthlyMa).toLocaleString()}/mo
+
+🚀 **The Compounding Shift**:
+${maGap === 0 ? `* **ACTIVE**: Your monthly S$ ${Math.round(monthlyMa).toLocaleString()} MA contribution and 4.08% interest are **automatically overflowing directly into your Special Account (SA)** at 4.08% p.a. guaranteed!` : `* If you top up the remaining S$ ${maGap.toLocaleString()} to cap BHS, your future **S$ ${Math.round(monthlyMa).toLocaleString()}/month** and annual **4.08% interest** will bypass MA and flow straight into SA to turbocharge your retirement compounding!`}
+
+💡 **Jiabao's Pro Tip**: MediSave top-ups also qualify for personal income tax relief (up to your BHS cap)!
+
+🔥 **Jiabao's Action Rule**: Hit your BHS cap as early in your 20s or 30s as possible so every monthly dollar after that is working for your retirement in SA! 🚀📱`;
+  }
+
+  if (q.includes('january') || q.includes('rstu') || q.includes('december') || q.includes('timing')) {
+    return `📅 **[Jiabao's January RSTU Top-Up Multiplier]** 🇸🇬
+
+🔥 **The Timing Hack**: CPF calculates interest on your lowest monthly balance, compounding monthly and crediting on 31 Dec.
+
+📊 **Comparing S$ 8,000 Top-Up in Jan vs Dec**:
+* ❄️ **December Top-Up**: Earns only **1 month** of interest = **S$ 27.20**
+* ☀️ **January Top-Up**: Earns a full **12 months** of 4.08% interest = **S$ 326.40**
+* 💰 **Net Free Return Difference**: **+S$ 299.20** pure extra government interest simply for topping up in January!
+
+📈 **Tax Relief Stacking**:
+* **Personal SA Top-Up**: Up to **S$ 8,000 / yr** tax deduction
+* **Loved Ones Top-Up (Parents/Spouse/Siblings)**: Additional **S$ 8,000 / yr** tax deduction
+* **Total Annual Tax Shield**: Up to **S$ 16,000 / yr**!
+
+💡 **Jiabao's Action Rule**: Set a recurring calendar reminder on **1 January every year** to execute your RSTU cash top-up first thing! 🚀📱`;
+  }
+
+  if (q.includes('life') || q.includes('defer') || q.includes('65') || q.includes('70') || q.includes('payout')) {
+    return `👵 **[Jiabao's CPF LIFE Strategy: Age 65 vs 70 Deferment]** 🇸🇬
+
+🔥 **The +35% Lifetime Boost**: You can start CPF LIFE anytime between age 65 and 70. For every year you defer, your monthly payout increases by **~7% permanently (up to +35% higher for the rest of your life!)**.
+
+📊 **Payout Comparison Matrix (Standard Plan)**:
+* 🥉 **BRS (S$ 106,500)**: ~S$ 850/mo @ 65 ➔ **~S$ 1,150/mo @ 70**
+* 🥈 **FRS (S$ 213,000)**: ~S$ 1,650/mo @ 65 ➔ **~S$ 2,230/mo @ 70**
+* 🥇 **ERS (S$ 426,000 - 4x BRS)**: ~S$ 3,300/mo @ 65 ➔ **~S$ 4,450/mo @ 70**
+
+🛡️ **Which Plan Should You Pick?**:
+1. **Standard Plan (Default / Most Popular)**: Highest monthly payout throughout life.
+2. **Escalating Plan**: Starts ~20% lower but grows by 2% every single year to beat inflation.
+3. **Basic Plan**: Lower monthly payout, leaves maximum legacy/bequest to children.
+
+💡 **Jiabao's Recommendation**: If you have sufficient personal savings or side income at age 65, defer CPF LIFE to age 70 to lock in the **maximum S$ 4,450/month guaranteed lifelong pension**! 🚀📱`;
+  }
+
+  if (q.includes('housing') || q.includes('property') || q.includes('accrued') || q.includes('trap') || q.includes('mortgage')) {
+    const propOa = 120000;
+    const accrued10 = propOa * (Math.pow(1.025, 10) - 1);
+    return `🏠 **[Jiabao's CPF Accrued Interest Housing Breakdown]** 🇸🇬
+
+⚠️ **The Hidden Opportunity Cost**: When you use CPF OA for your downpayment and monthly mortgage, CPF Board charges you **2.50% compounded annual interest** on the amount withdrawn.
+
+📊 **The Reality Check (Example on S$ 120,000 OA used)**:
+* **Original OA Principal Used**: S$ ${propOa.toLocaleString()}
+* **10-Year Compounded Accrued Interest**: S$ ${Math.round(accrued10).toLocaleString()}
+* **Total Refund Required Upon Selling Property**: **S$ ${Math.round(propOa + accrued10).toLocaleString()}** (Refunded directly back into your CPF OA).
+
+💡 **Jiabao's Strategy**:
+* If your property appreciation beats 2.5% p.a., you still build net worth.
+* But if your house price stagnates, you risk getting **$0 cash proceeds** upon selling because all proceeds must return to CPF OA.
+* **Pro Hack**: Where feasible, service part of your mortgage in cash, and leave OA to earn guaranteed 2.5% or transfer to SA at 4.08%! 🚀📱`;
+  }
+
+  // Complete Audit (Default)
+  const oaTransferGain20 = oa * (Math.pow(1.0408, 20) - Math.pow(1.025, 20));
+  return `🇸🇬 **[TikToker Jiabao (@gejiabao) - Complete CPF Mastery Audit]**
+
+Hey guys, Jiabao here! Let's do a full deep-dive into your CPF balances (Age ${age}):
+
+💰 **Your Current CPF Capital**: S$ ${totalCpf.toLocaleString()}
+* **OA (2.50%)**: S$ ${oa.toLocaleString()}
+* **SA (4.08%)**: S$ ${sa.toLocaleString()}
+* **MA (4.08%)**: S$ ${ma.toLocaleString()} ${ma >= BHS ? '*(Capped at BHS! 🎉)*' : `*(S$ ${(BHS - ma).toLocaleString()} to BHS)*`}
+
+🔥 **Jiabao's 4-Step Optimization Playbook for You**:
+
+1. **🛡️ Capture 100% of the First $60k Bonus Pool**:
+   - You currently have **S$ ${totalBonusPool.toLocaleString()} / S$ 60,000** qualifying for the extra 1% p.a. grant.
+   - Annual free extra government interest: **S$ ${Math.round(bonusCashYear).toLocaleString()}/year**.
+
+2. **🌊 MediSave (MA) to BHS Overflow Strategy**:
+   - 2026 BHS is **S$ 75,000**. ${ma >= BHS ? `Your MA is capped! Your monthly S$ ${Math.round(monthlyMa).toLocaleString()}/mo is overflowing straight into SA at 4.08%!` : `Top up the remaining S$ ${(BHS - ma).toLocaleString()} to trigger automatic 4.08% SA overflow on your monthly CPF contributions.`}
+
+3. **📅 The January RSTU Timing Hack**:
+   - Don't wait until December! Perform your **S$ 8,000 cash top-up in January** to capture **11 extra months of compounding (+S$ 299.20/yr free cash)** + up to **S$ 16,000 tax relief** (self + loved ones).
+
+4. **📈 OA-to-SA One-Way Compounding Multiplier**:
+   - If your housing is settled, transferring your S$ ${oa.toLocaleString()} OA balance to SA unlocks an extra **+S$ ${Math.round(oaTransferGain20).toLocaleString()}** in pure compound interest over 20 years!
+
+5. **👵 CPF LIFE Deferment to Age 70**:
+   - Deferring your CPF LIFE payout from age 65 to age 70 boosts your monthly payout by **+35% for life** (up to **S$ 4,450/month** at ERS)!
+
+🔥 **Jiabao's Action Rule**: Let your money work harder than you do in Singapore! Reach BHS early, top up in Jan, and enjoy the power of 4.08% compound interest! 🚀📱`;
 }
 
 // Budget Auditor (Local Rule Engine)

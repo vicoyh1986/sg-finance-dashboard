@@ -705,6 +705,279 @@
               </div>
             </div>
           </div>
+
+          <!-- 🔥 TikToker Jiabao CPF Strategy & Optimization Suite -->
+          <div class="jiabao-suite-container" style="margin-top: 2.5rem;">
+            <div class="jiabao-hub-header">
+              <div class="jiabao-header-left">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                  <span class="jiabao-badge">🔥 TIKTOKER JIABAO STRATEGY PLAYBOOK</span>
+                  <span class="jiabao-verified-badge">✓ Top SG Finance Creator</span>
+                </div>
+                <h3 class="jiabao-title">Singapore CPF Optimization & Compounding Hacks</h3>
+                <p class="jiabao-desc">Actionable, high-impact CPF frameworks popularized by financial creator <strong>@gejiabao</strong>. Maximize guaranteed returns, exploit overflow mechanics, capture government bonuses, and lock in higher CPF LIFE payouts.</p>
+              </div>
+              <div class="jiabao-creator-chip">
+                <div class="jiabao-avatar">📱</div>
+                <div class="jiabao-info">
+                  <span class="jiabao-name">Ge Jiabao (@gejiabao)</span>
+                  <span class="jiabao-role">CPF & Retirement Strategist</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6 Strategy Cards Grid -->
+            <div class="grid grid-3-col gap-4" style="margin-top: 1.5rem;">
+              
+              <!-- 1. MediSave (MA) to BHS Overflow Engine -->
+              <div class="card glass-card jiabao-strategy-card">
+                <div class="strategy-card-header">
+                  <span class="strategy-icon">🌊</span>
+                  <div>
+                    <h4 class="strategy-title">1. MediSave to BHS Overflow</h4>
+                    <span class="strategy-tag">4.08% Pure SA Boost</span>
+                  </div>
+                </div>
+                <p class="strategy-body">The 2026 Basic Healthcare Sum (BHS) is <strong>S$ 75,000</strong>. Once your MediSave reaches BHS, every additional monthly MA contribution and 4.08% interest <em>overflows automatically into your Special Account (SA)</em> to supercharge retirement!</p>
+                
+                <div class="bhs-meter-wrapper">
+                  <div class="bhs-meter-header">
+                    <span>MediSave Progress</span>
+                    <strong id="jiabao-ma-progress-pct">33.3%</strong>
+                  </div>
+                  <div class="meter-bar-track">
+                    <div class="meter-bar-fill" id="jiabao-ma-progress-bar" style="width: 33.3%;"></div>
+                  </div>
+                  <div class="bhs-meter-footer">
+                    <span id="jiabao-ma-current-disp">Current: S$ 25,000</span>
+                    <span>Cap: S$ 75,000 (BHS)</span>
+                  </div>
+                </div>
+
+                <div class="strategy-stat-box">
+                  <div class="stat-mini">
+                    <span class="stat-mini-lbl">Top-Up Needed to Cap BHS:</span>
+                    <strong class="stat-mini-val text-accent" id="jiabao-ma-gap-val">S$ 50,000</strong>
+                  </div>
+                  <div class="stat-mini">
+                    <span class="stat-mini-lbl">Monthly Overflow to SA Once Capped:</span>
+                    <strong class="stat-mini-val text-success" id="jiabao-ma-monthly-overflow">+S$ 520 / mo</strong>
+                  </div>
+                </div>
+
+                <div class="strategy-action-row">
+                  <button class="btn-jiabao-action" onclick="simulateCapMaBhs()">
+                    <span>💡 Simulate Capping MA at BHS ($75k)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 2. January vs December RSTU Top-Up Timing Multiplier -->
+              <div class="card glass-card jiabao-strategy-card">
+                <div class="strategy-card-header">
+                  <span class="strategy-icon">📅</span>
+                  <div>
+                    <h4 class="strategy-title">2. January RSTU Timing Hack</h4>
+                    <span class="strategy-tag">11 Mo. Free Compounding</span>
+                  </div>
+                </div>
+                <p class="strategy-body">CPF interest compounds monthly but pays annually. If you perform your <strong>S$ 8,000 cash top-up in January</strong> instead of December, you capture <em>11 extra months of 4.08% interest</em> for free!</p>
+
+                <div class="rstu-comparison-grid">
+                  <div class="rstu-box dec-box">
+                    <span class="rstu-box-title">December Top-Up</span>
+                    <span class="rstu-box-val" id="jiabao-rstu-dec-val">S$ 27.20</span>
+                    <span class="rstu-box-sub">1 month interest</span>
+                  </div>
+                  <div class="rstu-vs">VS</div>
+                  <div class="rstu-box jan-box">
+                    <span class="rstu-box-title">January Top-Up</span>
+                    <span class="rstu-box-val text-success" id="jiabao-rstu-jan-val">S$ 326.40</span>
+                    <span class="rstu-box-sub">Full 12 months interest</span>
+                  </div>
+                </div>
+
+                <div class="strategy-stat-box">
+                  <div class="stat-mini">
+                    <span class="stat-mini-lbl">Free Extra Interest Captured:</span>
+                    <strong class="stat-mini-val text-success" id="jiabao-rstu-diff-val">+S$ 299.20 / yr</strong>
+                  </div>
+                  <div class="stat-mini">
+                    <span class="stat-mini-lbl">Max Tax Relief (Self + Loved Ones):</span>
+                    <strong class="stat-mini-val text-primary">S$ 16,000 / yr</strong>
+                  </div>
+                </div>
+
+                <div class="strategy-action-row">
+                  <button class="btn-jiabao-action" onclick="simulateJanuaryTopUp()">
+                    <span>🚀 Apply S$8k Jan Top-Up to SA</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 3. OA-to-SA One-Way Compounding Multiplier -->
+              <div class="card glass-card jiabao-strategy-card">
+                <div class="strategy-card-header">
+                  <span class="strategy-icon">📈</span>
+                  <div>
+                    <h4 class="strategy-title">3. OA-to-SA Compounding Boost</h4>
+                    <span class="strategy-tag">+1.58% Guaranteed Yield</span>
+                  </div>
+                </div>
+                <p class="strategy-body">Transferring idle OA (2.50%) to SA (4.08%) unlocks an extra <strong>1.58% guaranteed compounding</strong> per year. <em>Warning: Strictly 1-way irreversible. Do not transfer funds needed for property in 3-5 years!</em></p>
+
+                <div class="input-group" style="margin-bottom: 0.75rem;">
+                  <label for="jiabao-oa-transfer-input" style="font-size: 0.8rem;">Simulate Transfer Amount (S$)</label>
+                  <input type="number" id="jiabao-oa-transfer-input" class="input-field" value="30000" min="0" step="1000" oninput="updateJiabaoCpfHub()" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">
+                </div>
+
+                <div class="oa-transfer-compound-matrix">
+                  <div class="compound-tier">
+                    <span class="tier-lbl">10-Year Extra Gain:</span>
+                    <strong class="tier-val text-accent" id="jiabao-transfer-10yr">+S$ 5,910</strong>
+                  </div>
+                  <div class="compound-tier">
+                    <span class="tier-lbl">20-Year Extra Gain:</span>
+                    <strong class="tier-val text-success" id="jiabao-transfer-20yr">+S$ 16,420</strong>
+                  </div>
+                  <div class="compound-tier">
+                    <span class="tier-lbl">30-Year Extra Gain:</span>
+                    <strong class="tier-val text-success" id="jiabao-transfer-30yr">+S$ 35,680</strong>
+                  </div>
+                </div>
+
+                <div class="strategy-action-row">
+                  <button class="btn-jiabao-action" onclick="simulateTransferOaSa()">
+                    <span>🔄 Simulate Transferring S$30k OA ➔ SA</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 4. First S$60,000 Extra 1% Bonus Pool Optimizer -->
+              <div class="card glass-card jiabao-strategy-card">
+                <div class="strategy-card-header">
+                  <span class="strategy-icon">🛡️</span>
+                  <div>
+                    <h4 class="strategy-title">4. First S$60k Bonus Optimizer</h4>
+                    <span class="strategy-tag">Extra 1% Govt Grant</span>
+                  </div>
+                </div>
+                <p class="strategy-body">The Singapore Government pays an <strong>extra 1% interest</strong> on your first S$60,000 combined CPF balances (capped at S$20,000 in OA). That is <strong>S$600/yr in free cash</strong>!</p>
+
+                <div class="bonus-pool-breakdown">
+                  <div class="pool-row">
+                    <span>OA Tier (Max S$20,000 @ 3.50%):</span>
+                    <strong id="jiabao-oa-bonus-util">S$ 20,000 / S$ 20,000 (100%)</strong>
+                  </div>
+                  <div class="pool-row">
+                    <span>SA/MA Tier (Max S$40,000 @ 5.08%):</span>
+                    <strong id="jiabao-sama-bonus-util">S$ 40,000 / S$ 40,000 (100%)</strong>
+                  </div>
+                </div>
+
+                <div class="strategy-stat-box">
+                  <div class="stat-mini">
+                    <span class="stat-mini-lbl">Active Bonus Interest Pool:</span>
+                    <strong class="stat-mini-val text-accent" id="jiabao-total-bonus-pool">S$ 60,000 / S$ 60,000</strong>
+                  </div>
+                  <div class="stat-mini">
+                    <span class="stat-mini-lbl">Annual Free Extra Govt Interest:</span>
+                    <strong class="stat-mini-val text-success" id="jiabao-annual-free-bonus">+S$ 600 / yr</strong>
+                  </div>
+                </div>
+
+                <div class="strategy-action-row">
+                  <div class="status-pill-jiabao success" id="jiabao-bonus-status-pill">
+                    ✓ Full S$60k Bonus Interest Optimized!
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. CPF LIFE 5-Year Deferment Matrix (Age 65 vs 70) -->
+              <div class="card glass-card jiabao-strategy-card">
+                <div class="strategy-card-header">
+                  <span class="strategy-icon">👵</span>
+                  <div>
+                    <h4 class="strategy-title">5. CPF LIFE 65 vs 70 Deferment</h4>
+                    <span class="strategy-tag">+7% / Yr (+35% Higher)</span>
+                  </div>
+                </div>
+                <p class="strategy-body">For every year you delay starting CPF LIFE payouts between age 65 and 70, your monthly lifelong payout <strong>increases by ~7% (up to +35% higher for life)</strong>!</p>
+
+                <div class="cpf-life-controls" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 0.8rem;">Retirement Sum Tier:</label>
+                    <select id="jiabao-cpflife-tier" class="input-field-mini" onchange="updateJiabaoCpfHub()" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--input-border); border-radius: 4px;">
+                      <option value="brs">BRS (S$ 106,500)</option>
+                      <option value="frs" selected>FRS (S$ 213,000)</option>
+                      <option value="ers">ERS 4x BRS (S$ 426,000)</option>
+                    </select>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 0.8rem;">CPF LIFE Plan:</label>
+                    <select id="jiabao-cpflife-plan" class="input-field-mini" onchange="updateJiabaoCpfHub()" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--input-border); border-radius: 4px;">
+                      <option value="standard" selected>Standard Plan (Max Payout)</option>
+                      <option value="basic">Basic Plan (Max Bequest)</option>
+                      <option value="escalating">Escalating (+2%/yr inflation)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="cpf-life-comparison-card">
+                  <div class="life-payout-col">
+                    <span class="life-payout-age">Start Age 65:</span>
+                    <strong class="life-payout-val" id="jiabao-payout-age65">S$ 1,650 / mo</strong>
+                  </div>
+                  <div class="life-arrow">➔</div>
+                  <div class="life-payout-col">
+                    <span class="life-payout-age text-success">Start Age 70 (+35%):</span>
+                    <strong class="life-payout-val text-success" id="jiabao-payout-age70">S$ 2,230 / mo</strong>
+                  </div>
+                </div>
+
+                <div class="strategy-action-row" style="margin-top: 0.5rem;">
+                  <button class="btn-jiabao-action" onclick="runQuickPrompt('jiabao-cpflife')">
+                    <span>💬 Consult Jiabao on CPF LIFE</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 6. Accrued Interest & Housing Opportunity Cost -->
+              <div class="card glass-card jiabao-strategy-card">
+                <div class="strategy-card-header">
+                  <span class="strategy-icon">🏠</span>
+                  <div>
+                    <h4 class="strategy-title">6. CPF Accrued Interest Trap</h4>
+                    <span class="strategy-tag">2.5% Housing Clawback</span>
+                  </div>
+                </div>
+                <p class="strategy-body">Using OA for your HDB/property triggers mandatory <strong>2.5% compounded interest repayment back into CPF</strong> upon sale. Service with cash if you want to avoid negative cash sale proceeds!</p>
+
+                <div class="input-group" style="margin-bottom: 0.5rem;">
+                  <label for="jiabao-prop-oa-used" style="font-size: 0.8rem;">Total OA Used for Property (S$)</label>
+                  <input type="number" id="jiabao-prop-oa-used" class="input-field" value="120000" min="0" step="5000" oninput="updateJiabaoCpfHub()" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">
+                </div>
+
+                <div class="strategy-stat-box">
+                  <div class="stat-mini">
+                    <span class="stat-mini-lbl">10-Year Accrued Interest Refund:</span>
+                    <strong class="stat-mini-val text-danger" id="jiabao-accrued-10yr">S$ 33,610</strong>
+                  </div>
+                  <div class="stat-mini">
+                    <span class="stat-mini-lbl">Total Refund Required on Sale:</span>
+                    <strong class="stat-mini-val text-danger" id="jiabao-total-refund-10yr">S$ 153,610</strong>
+                  </div>
+                </div>
+
+                <div class="strategy-action-row">
+                  <button class="btn-jiabao-action" onclick="runQuickPrompt('jiabao-housing')">
+                    <span>🏠 Ask Jiabao: Cash vs OA Housing</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
         </section>
 
         <!-- 3.5 HOUSEHOLD PANEL VIEW -->
@@ -1439,6 +1712,7 @@
                 <div class="input-group" style="margin-bottom: 0;">
                   <select id="chat-persona" class="input-field" style="padding: 0.55rem; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--input-border); border-radius: var(--border-radius-md); width:100%; font-family:var(--font-body); font-size:0.88rem;" onchange="changePersona()">
                     <option value="analyst">🇸🇬 Pragmatic SG Analyst (Default)</option>
+                    <option value="jiabao">📱 TikToker Jiabao (CPF Strategist 🇸🇬)</option>
                     <option value="coach">🏆 Encouraging Wealth Coach</option>
                     <option value="budgeter">⚠️ Strict FIRE Disciplinarian</option>
                   </select>
@@ -1453,6 +1727,22 @@
                   <button class="btn-prompt" onclick="runQuickPrompt('wizard')" style="border-color: var(--color-primary); background: rgba(139, 92, 246, 0.05);">
                     <span class="prompt-icon">🚀</span>
                     <span class="prompt-text" style="font-weight: 700; color: var(--color-primary);">Fast Net Worth Allocation Wizard</span>
+                  </button>
+                  <button class="btn-prompt" onclick="runQuickPrompt('jiabao-audit')" style="border-color: #ff0050; background: rgba(255, 0, 80, 0.05);">
+                    <span class="prompt-icon">📱</span>
+                    <span class="prompt-text" style="font-weight: 600; color: #ff0050;">Jiabao: Full CPF Strategy Audit</span>
+                  </button>
+                  <button class="btn-prompt" onclick="runQuickPrompt('jiabao-overflow')">
+                    <span class="prompt-icon">🌊</span>
+                    <span class="prompt-text">Jiabao: MA to BHS Overflow Hack</span>
+                  </button>
+                  <button class="btn-prompt" onclick="runQuickPrompt('jiabao-january')">
+                    <span class="prompt-icon">📅</span>
+                    <span class="prompt-text">Jiabao: January vs Dec RSTU Hack</span>
+                  </button>
+                  <button class="btn-prompt" onclick="runQuickPrompt('jiabao-cpflife')">
+                    <span class="prompt-icon">👵</span>
+                    <span class="prompt-text">Jiabao: CPF LIFE Age 65 vs 70 Deferment</span>
                   </button>
                   <button class="btn-prompt" onclick="runQuickPrompt('budget')">
                     <span class="prompt-icon">🔍</span>
