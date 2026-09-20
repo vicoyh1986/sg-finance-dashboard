@@ -19,6 +19,11 @@ let state = {
   cpf: {
     age: 28,
     salary: 6200,
+    status: 'full',
+    ageTiming: 'after',
+    bonus: 0,
+    bhs: 0,
+    frs: 0,
     oa: 38000,
     sa: 22000,
     ma: 18000,
@@ -176,6 +181,7 @@ function mergeDeep(target, source) {
   if (!isObject(target) || !isObject(source)) return source;
 
   Object.keys(source).forEach(key => {
+    if (['__proto__', 'constructor', 'prototype'].includes(key)) return;
     const targetValue = target[key];
     const sourceValue = source[key];
 
@@ -451,6 +457,7 @@ function switchTab(tabId) {
 
 // Synchronize inputs in DOM with current state
 function syncInputsDOM() {
+  state.cpf = CPF.profile(state.cpf);
   // 1. Banks
   const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
   const setChecked = (id, check) => { const el = document.getElementById(id); if (el) el.checked = check; };
@@ -507,6 +514,11 @@ function syncInputsDOM() {
   // 2. CPF
   setVal('cpf-age', state.cpf.age);
   setVal('cpf-salary', state.cpf.salary);
+  setVal('cpf-status', state.cpf.status);
+  setVal('cpf-age-timing', state.cpf.ageTiming);
+  setVal('cpf-bonus', state.cpf.bonus);
+  setVal('cpf-bhs', state.cpf.bhs || '');
+  setVal('cpf-frs', state.cpf.frs || '');
   setVal('cpf-oa-bal', state.cpf.oa);
   setVal('cpf-sa-bal', state.cpf.sa);
   setVal('cpf-ma-bal', state.cpf.ma);
@@ -663,6 +675,11 @@ function setupInputListeners() {
 
     { id: 'cpf-age', path: 'cpf.age', isNum: true },
     { id: 'cpf-salary', path: 'cpf.salary', isNum: true },
+    { id: 'cpf-status', path: 'cpf.status', isNum: false },
+    { id: 'cpf-age-timing', path: 'cpf.ageTiming', isNum: false },
+    { id: 'cpf-bonus', path: 'cpf.bonus', isNum: true },
+    { id: 'cpf-bhs', path: 'cpf.bhs', isNum: true },
+    { id: 'cpf-frs', path: 'cpf.frs', isNum: true },
     { id: 'cpf-oa-bal', path: 'cpf.oa', isNum: true },
     { id: 'cpf-sa-bal', path: 'cpf.sa', isNum: true },
     { id: 'cpf-ma-bal', path: 'cpf.ma', isNum: true },
@@ -700,6 +717,10 @@ function setupInputListeners() {
         let val = el.value;
         if (item.isNum) {
           val = parseFloat(val) || 0;
+        }
+        if (item.path.startsWith('cpf.') && item.isNum) {
+          val = item.id === 'cpf-age' ? CPF.ageOf(val) : CPF.money(val);
+          el.value = val;
         }
         setDeepValue(state, item.path, val);
         saveState();
@@ -1003,66 +1024,18 @@ function calcScbRate(scbState) {
 
 // 5. CPF rates and allocations based on age
 function getCpfAllocations(age) {
-  // Citizen rates/splits for standard employer (17%) and employee (20%) - Total 37%
-  if (age <= 35) {
-    return {
-      employee: 20.0, employer: 17.0, total: 37.0,
-      oa: 0.6217, sa: 0.1621, ma: 0.2162
-    };
-  } else if (age <= 45) {
-    return {
-      employee: 20.0, employer: 17.0, total: 37.0,
-      oa: 0.5677, sa: 0.1891, ma: 0.2432
-    };
-  } else if (age <= 50) {
-    return {
-      employee: 20.0, employer: 17.0, total: 37.0,
-      oa: 0.5136, sa: 0.2162, ma: 0.2702
-    };
-  } else if (age <= 55) {
-    return {
-      employee: 20.0, employer: 17.0, total: 37.0,
-      oa: 0.4055, sa: 0.3108, ma: 0.2837
-    };
-  } else if (age <= 60) {
-    // 2026 rates for age 55-60
-    return {
-      employee: 15.0, employer: 14.5, total: 29.5,
-      oa: 0.4068, sa: 0.2712, ma: 0.3220
-    };
-  } else if (age <= 65) {
-    return {
-      employee: 10.5, employer: 11.5, total: 22.0,
-      oa: 0.1591, sa: 0.3409, ma: 0.5000
-    };
-  } else if (age <= 70) {
-    return {
-      employee: 7.5, employer: 9.0, total: 16.5,
-      oa: 0.0606, sa: 0.2727, ma: 0.6667
-    };
-  } else {
-    return {
-      employee: 5.0, employer: 7.5, total: 12.5,
-      oa: 0.0800, sa: 0.1200, ma: 0.8000
-    };
-  }
+  return CPF.rates(age);
 }
 
-// Calculate CPF annual extra interest (+1% on combined balances up to 60k, capped 20k for OA)
-function calcCpfExtraInterest(oa, sa, ma) {
-  const combined = oa + sa + ma;
-  const bonusBase = Math.min(60000, combined);
-  const oaBonusPortion = Math.min(20000, oa, bonusBase);
-  const saMaBonusPortion = Math.max(0, bonusBase - oaBonusPortion);
-
-  const oaBonusInterest = oaBonusPortion * 0.01;
-  const saMaBonusInterest = saMaBonusPortion * 0.01;
-
-  return {
-    total: oaBonusInterest + saMaBonusInterest,
-    oa: oaBonusInterest,
-    saMa: saMaBonusInterest
-  };
+function cpfNotice(p) {
+  const notes = ['2026 planning estimate; age bands change the month after your birthday.'];
+  if (p.status === 'unsupported') notes.push('CPF contributions are NOT estimated for graduated PR, self-employed or platform-worker rates. Use the CPF Board calculator; projections omit these contributions.');
+  if (p.status === 'foreign') notes.push('No mandatory CPF contributions modeled for a foreign employee.');
+  if (p.age >= 55) notes.push('SA is closed at 55; any legacy SA is modeled as a transfer to RA up to FRS, then OA. Enter actual post-closure balances.');
+  if (CPF.limits(p).needsFrs) notes.push('Enter your own age-55 FRS: a 2026 placeholder is currently used for this older cohort.');
+  notes.push('FRS room uses recorded balances, not CPF Board retirement principal/CPFIS adjustments. Verify your actual eligible top-up and transfer amounts with CPF Board.');
+  notes.push('Annual bonus assumes one December payment, 12 identical OW months and one employer. Income tax, CPF LIFE premiums/payouts, housing withdrawals and future rule changes are not modeled.');
+  return notes.join(' ');
 }
 
 /* ==========================================
@@ -1070,6 +1043,11 @@ function calcCpfExtraInterest(oa, sa, ma) {
    ========================================== */
 
 function updateCalculations() {
+  state.cpf = CPF.profile(state.cpf);
+  const primaryCpf = CPF.closeSA(state.cpf);
+  if (state.household && Array.isArray(state.household.members)) {
+    state.household.members = state.household.members.map(m => ({ ...CPF.profile(m), bankBalance: CPF.money(m.bankBalance) }));
+  }
   // Sync state values that might have been loaded but not updated
   const dbsBal = state.banks.dbs.balance;
   const uobBal = state.banks.uob.balance;
@@ -1134,10 +1112,11 @@ function updateCalculations() {
 
   if (state.household && state.household.enabled && state.household.members) {
     memberBankTotal = state.household.members.reduce((sum, m) => sum + Number(m.bankBalance || 0), 0);
-    memberOaTotal = state.household.members.reduce((sum, m) => sum + Number(m.oa || 0), 0);
-    memberSaTotal = state.household.members.reduce((sum, m) => sum + Number(m.sa || 0), 0);
-    memberMaTotal = state.household.members.reduce((sum, m) => sum + Number(m.ma || 0), 0);
-    memberRaTotal = state.household.members.reduce((sum, m) => sum + Number(m.ra || 0), 0);
+    const members = state.household.members.map(m => CPF.closeSA(m));
+    memberOaTotal = members.reduce((sum, m) => sum + m.oa, 0);
+    memberSaTotal = members.reduce((sum, m) => sum + m.sa, 0);
+    memberMaTotal = members.reduce((sum, m) => sum + m.ma, 0);
+    memberRaTotal = members.reduce((sum, m) => sum + m.ra, 0);
   }
 
   const totalLiquidCash = dbsBal + uobBal + ocbcBal + scbBal + hsbcBal + citiBal + maybankBal + bocBal + memberBankTotal;
@@ -1145,52 +1124,63 @@ function updateCalculations() {
   // 2. CPF Calculations
   const cpfAge = state.cpf.age;
   const cpfSalary = state.cpf.salary;
-  const cappedSalary = Math.min(8000, cpfSalary); // 2026 OW Ceiling is S$8,000
-
-  const rates = getCpfAllocations(cpfAge);
-  const employeeContrib = cappedSalary * (rates.employee / 100);
-  const employerContrib = cappedSalary * (rates.employer / 100);
-  const totalMonthlyContrib = employeeContrib + employerContrib;
+  const annualCpf = CPF.annual(primaryCpf);
+  const employeeContrib = annualCpf.monthly.employee;
+  const employerContrib = annualCpf.monthly.employer;
+  const totalMonthlyContrib = annualCpf.monthly.total;
 
   document.getElementById('cpf-employee-contrib').innerText = formatMoney(employeeContrib);
   document.getElementById('cpf-employer-contrib').innerText = formatMoney(employerContrib);
   document.getElementById('cpf-total-monthly').innerText = formatMoney(totalMonthlyContrib);
 
   // Set visual bar widths
-  const employeePercent = (rates.employee / rates.total) * 100;
-  const employerPercent = (rates.employer / rates.total) * 100;
+  const employeePercent = totalMonthlyContrib ? employeeContrib / totalMonthlyContrib * 100 : 0;
+  const employerPercent = totalMonthlyContrib ? employerContrib / totalMonthlyContrib * 100 : 0;
   document.getElementById('split-employee-bar').style.width = `${employeePercent}%`;
-  document.getElementById('split-employee-bar').innerText = `Employee (${rates.employee}%)`;
+  document.getElementById('split-employee-bar').innerText = `Employee (${cpfSalary ? (employeeContrib / cpfSalary * 100).toFixed(1) : 0}% of pay)`;
   document.getElementById('split-employer-bar').style.width = `${employerPercent}%`;
-  document.getElementById('split-employer-bar').innerText = `Employer (${rates.employer}%)`;
+  document.getElementById('split-employer-bar').innerText = `Employer (${cpfSalary ? (employerContrib / cpfSalary * 100).toFixed(1) : 0}% of pay)`;
 
   // Allocation flows
-  const oaFlow = totalMonthlyContrib * rates.oa;
-  const saFlow = totalMonthlyContrib * rates.sa;
-  const maFlow = totalMonthlyContrib * rates.ma;
-
-  document.getElementById('cpf-oa-pct').innerText = `${(rates.oa * 100).toFixed(2)}%`;
-  document.getElementById('cpf-sa-pct').innerText = `${(rates.sa * 100).toFixed(2)}%`;
-  document.getElementById('cpf-ma-pct').innerText = `${(rates.ma * 100).toFixed(2)}%`;
-
-  document.getElementById('cpf-oa-flow').innerText = formatMoney(oaFlow);
-  document.getElementById('cpf-sa-flow').innerText = formatMoney(saFlow);
-  document.getElementById('cpf-ma-flow').innerText = formatMoney(maFlow);
+  const flows = CPF.allocate(primaryCpf, totalMonthlyContrib).flows;
+  for (const account of ['oa', 'sa', 'ma', 'ra']) {
+    const pct = document.getElementById(`cpf-${account}-pct`);
+    const flow = document.getElementById(`cpf-${account}-flow`);
+    if (pct) pct.textContent = totalMonthlyContrib ? `${(flows[account] / totalMonthlyContrib * 100).toFixed(2)}%` : '0%';
+    if (flow) flow.textContent = formatMoney(flows[account]);
+  }
+  const cpfDetails = {
+    'cpf-annual-contrib': formatMoney(annualCpf.total),
+    'cpf-aw-ceiling': formatMoney(annualCpf.awCeiling),
+    'cpf-net-pay': formatMoney(cpfSalary - employeeContrib),
+    'cpf-rules-notice': cpfNotice(primaryCpf),
+    'cpf-bonus-description': `Extra interest is calculated per person: 1% on the first S$60,000, plus another 1% on the first S$30,000 from age 55; at most S$20,000 of OA qualifies.`
+  };
+  for (const [id, text] of Object.entries(cpfDetails)) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+  const projectionNotice = document.getElementById('cpf-projection-notice');
+  if (projectionNotice) {
+    const unsupported = primaryCpf.status === 'unsupported' ||
+      (state.household?.enabled && state.household.members.some(m => m.status === 'unsupported'));
+    projectionNotice.textContent = unsupported
+      ? 'Incomplete projection: graduated PR, self-employed or platform-worker CPF contributions are excluded. Use CPF Board tools for these members.'
+      : 'Accumulation illustration only: CPF is restricted savings, not emergency cash. No retirement spending, CPF LIFE payouts or income tax modeled.';
+  }
 
   // Compounded interest estimate for this year
-  const oaBal = state.cpf.oa + memberOaTotal;
-  const saBal = state.cpf.sa + memberSaTotal;
-  const maBal = state.cpf.ma + memberMaTotal;
-  const raBal = state.cpf.ra + memberRaTotal;
+  const oaBal = primaryCpf.oa + memberOaTotal;
+  const saBal = primaryCpf.sa + memberSaTotal;
+  const maBal = primaryCpf.ma + memberMaTotal;
+  const raBal = primaryCpf.ra + memberRaTotal;
 
   const currentCpfTotal = oaBal + saBal + maBal + raBal;
   document.getElementById('card-cpf-total').innerText = formatMoney(currentCpfTotal);
-  document.getElementById('card-cpf-breakdown').innerText = `OA: ${formatMoney(oaBal)} | SA: ${formatMoney(saBal)} | MA: ${formatMoney(maBal)}` + (cpfAge >= 55 ? ` | RA: ${formatMoney(raBal)}` : '');
+  document.getElementById('card-cpf-breakdown').innerText = `OA: ${formatMoney(oaBal)} | SA: ${formatMoney(saBal)} | MA: ${formatMoney(maBal)} | RA: ${formatMoney(raBal)}`;
 
-  // Interest is 2.5% for OA, 4.08% for SA/MA/RA
-  let baseInterest = (oaBal * 0.025) + ((saBal + maBal + raBal) * 0.0408);
-  const extraInt = calcCpfExtraInterest(oaBal, saBal, maBal);
-  let estimatedInterestYear = baseInterest + extraInt.total;
+  // Planner describes the primary member; household totals remain on the dashboard.
+  const estimatedInterestYear = CPF.interest(primaryCpf).total;
 
   document.getElementById('cpf-est-interest').innerText = formatMoney(estimatedInterestYear);
 
@@ -1252,10 +1242,10 @@ function updateCalculations() {
   // 4. Compounded Projection & Simulation Engine (Run 30-Year forecast)
   const projection = run30YearSimulation(
     cpfAge, 
-    totalLiquidCash, 
+    totalLiquidCash - memberBankTotal,
     totalInvestments, 
-    currentCpfTotal,
-    oaBal, saBal, maBal, raBal,
+    CPF.total(primaryCpf),
+    primaryCpf.oa, primaryCpf.sa, primaryCpf.ma, primaryCpf.ra,
     propVal, propLoan,
     carLoan, personalLoan, ccDebt
   );
@@ -1310,22 +1300,17 @@ function updateCalculations() {
 // 🔥 TikToker Jiabao CPF Strategy Hub & Simulator Functions
 // =========================================================================
 function updateJiabaoCpfHub() {
-  const maBal = state.cpf.ma || 0;
-  const oaBal = state.cpf.oa || 0;
-  const saBal = state.cpf.sa || 0;
-  const raBal = state.cpf.ra || 0;
-  const age = state.cpf.age || 28;
-  const salary = state.cpf.salary || 6200;
-
-  const BHS = 75000;
-  const FRS = 213000;
-  const ERS = 426000;
+  const p = CPF.closeSA(state.cpf);
+  const { ma: maBal, oa: oaBal, sa: saBal, ra: raBal, age } = p;
+  const BHS = CPF.limits(p).bhs;
+  const capLabel = document.getElementById('cpf-strategy-bhs-label');
+  if (capLabel) capLabel.textContent = `Cap: ${formatMoney(BHS)} (your BHS)`;
 
   // 1. MA to BHS Overflow Engine
   const maPct = Math.min(100, Math.max(0, (maBal / BHS) * 100));
   const maGap = Math.max(0, BHS - maBal);
-  const rates = getCpfAllocations(age);
-  const monthlyContrib = Math.min(8000, salary) * (rates.total / 100);
+  const rates = getCpfAllocations(age + (p.ageTiming === 'after' ? 1 : 0));
+  const monthlyContrib = CPF.contribution(p).total;
   const monthlyMa = monthlyContrib * rates.ma;
 
   const maPctEl = document.getElementById('jiabao-ma-progress-pct');
@@ -1342,8 +1327,8 @@ function updateJiabaoCpfHub() {
 
   // 2. January vs Dec RSTU Timing Hack
   const topUpAmt = 8000;
-  const decInterest = topUpAmt * 0.0408 * (1 / 12);
-  const janInterest = topUpAmt * 0.0408;
+  const decInterest = 0;
+  const janInterest = topUpAmt * CPF.rules.retirementInterest * (11 / 12);
   const diffInterest = janInterest - decInterest;
 
   const rstuDecEl = document.getElementById('jiabao-rstu-dec-val');
@@ -1356,12 +1341,11 @@ function updateJiabaoCpfHub() {
 
   // 3. OA to SA Transfer Simulation
   const transferInput = document.getElementById('jiabao-oa-transfer-input');
-  let transferAmt = transferInput ? parseFloat(transferInput.value) || 0 : 30000;
-  if (transferAmt < 0) transferAmt = 0;
+  const transferAmt = Math.min(CPF.money(transferInput?.value), oaBal, CPF.topUpRoom(p));
 
-  const gain10 = transferAmt * (Math.pow(1.0408, 10) - Math.pow(1.025, 10));
-  const gain20 = transferAmt * (Math.pow(1.0408, 20) - Math.pow(1.025, 20));
-  const gain30 = transferAmt * (Math.pow(1.0408, 30) - Math.pow(1.025, 30));
+  const gain10 = transferAmt * (Math.pow(1.04, 10) - Math.pow(1.025, 10));
+  const gain20 = transferAmt * (Math.pow(1.04, 20) - Math.pow(1.025, 20));
+  const gain30 = transferAmt * (Math.pow(1.04, 30) - Math.pow(1.025, 30));
 
   const t10El = document.getElementById('jiabao-transfer-10yr');
   const t20El = document.getElementById('jiabao-transfer-20yr');
@@ -1372,10 +1356,11 @@ function updateJiabaoCpfHub() {
   if (t30El) t30El.innerText = `+${formatMoney(gain30)}`;
 
   // 4. First S$60k Bonus Optimizer
-  const oaBonus = Math.min(20000, oaBal);
-  const samaBonus = Math.min(60000 - oaBonus, saBal + maBal + raBal);
-  const totalBonusPool = oaBonus + samaBonus;
-  const bonusCashYear = totalBonusPool * 0.01;
+  const extraInterest = CPF.interest(p);
+  const oaBonus = Math.min(20000, oaBal, Math.max(0, 60000 - raBal));
+  const totalBonusPool = extraInterest.eligible;
+  const samaBonus = totalBonusPool - oaBonus;
+  const bonusCashYear = extraInterest.extra;
 
   const oaBonusEl = document.getElementById('jiabao-oa-bonus-util');
   const samaBonusEl = document.getElementById('jiabao-sama-bonus-util');
@@ -1384,7 +1369,7 @@ function updateJiabaoCpfHub() {
   const bonusPillEl = document.getElementById('jiabao-bonus-status-pill');
 
   if (oaBonusEl) oaBonusEl.innerText = `${formatMoney(oaBonus)} / S$ 20,000 (${((oaBonus / 20000) * 100).toFixed(0)}%)`;
-  if (samaBonusEl) samaBonusEl.innerText = `${formatMoney(samaBonus)} / S$ 40,000 (${((samaBonus / 40000) * 100).toFixed(0)}%)`;
+  if (samaBonusEl) samaBonusEl.innerText = `${formatMoney(samaBonus)} eligible in SA / MA / RA`;
   if (totalBonusEl) totalBonusEl.innerText = `${formatMoney(totalBonusPool)} / S$ 60,000`;
   if (annualBonusEl) annualBonusEl.innerText = `+${formatMoney(bonusCashYear)} / yr`;
   if (bonusPillEl) {
@@ -1429,44 +1414,63 @@ function updateJiabaoCpfHub() {
   const acc10El = document.getElementById('jiabao-accrued-10yr');
   const ref10El = document.getElementById('jiabao-total-refund-10yr');
 
-  if (acc10El) acc10El.innerText = formatMoney(acc10);
+  if (acc10El) acc10El.innerText = formatMoney(accrued10);
   if (ref10El) ref10El.innerText = formatMoney(totalRefund10);
 }
 
 // Interactive Simulation Handlers for Jiabao Hub
 function simulateCapMaBhs() {
-  state.cpf.ma = 75000;
-  saveState();
-  syncInputsDOM();
-  updateCalculations();
-  showToastNotification("🌊 MediSave Capped at S$75,000! Future MA contributions now overflow into Special Account (SA) at 4.08% p.a.!");
+  const p = CPF.closeSA(state.cpf);
+  applyCpfCashTopUp('ma', Math.max(0, CPF.limits(p).bhs - p.ma));
 }
 
 function simulateJanuaryTopUp() {
-  state.cpf.sa = (state.cpf.sa || 0) + 8000;
+  const p = CPF.closeSA(state.cpf);
+  applyCpfCashTopUp(p.age < 55 ? 'sa' : 'ra', Math.min(8000, CPF.topUpRoom(p)));
+}
+
+function applyCpfCashTopUp(account, requested) {
+  const p = CPF.closeSA(state.cpf);
+  if (p.status !== 'full') {
+    showToastNotification('This simulation requires a supported CPF member profile. Verify eligibility with CPF Board.');
+    return;
+  }
+  const amount = CPF.cents(Math.min(CPF.money(requested), CPF.money(state.banks.dbs.balance)));
+  if (amount <= 0) {
+    showToastNotification('No eligible room or DBS cash available. No balances changed.');
+    return;
+  }
+  if (!confirm(`Simulate ${formatMoney(amount)} from DBS cash to ${account.toUpperCase()}? This reduces liquid cash. Real CPF top-ups are irreversible; tax relief and eligibility must be verified with CPF Board.`)) return;
+  state.banks.dbs.balance = CPF.cents(state.banks.dbs.balance - amount);
+  p[account] = CPF.cents(p[account] + amount);
+  state.cpf = p;
   saveState();
   syncInputsDOM();
   updateCalculations();
-  showToastNotification("📅 Applied S$8,000 January RSTU Top-Up to SA! Enjoyed 12 full months of compounding & S$8,000 tax relief!");
+  showToastNotification(`Simulated ${formatMoney(amount)} cash top-up. Net worth is unchanged; no tax relief assumed.`);
 }
 
 function simulateTransferOaSa() {
+  const p = CPF.closeSA(state.cpf);
   const transferInput = document.getElementById('jiabao-oa-transfer-input');
-  let amount = transferInput ? parseFloat(transferInput.value) || 0 : 30000;
-  if (amount <= 0) return;
-  if (state.cpf.oa < amount) {
-    amount = state.cpf.oa;
-  }
-  if (amount <= 0) {
-    showToastNotification("⚠️ Ordinary Account balance is S$0. No funds available to transfer.");
+  const amount = CPF.cents(Math.min(CPF.money(transferInput?.value), p.oa, CPF.topUpRoom(p)));
+  if (p.status !== 'full') {
+    showToastNotification('Verify transfer eligibility with CPF Board for this membership status.');
     return;
   }
-  state.cpf.oa -= amount;
-  state.cpf.sa = (state.cpf.sa || 0) + amount;
+  if (amount <= 0) {
+    showToastNotification('No OA funds or eligible retirement-account room available.');
+    return;
+  }
+  const destination = p.age < 55 ? 'sa' : 'ra';
+  if (!confirm(`Simulate transferring ${formatMoney(amount)} from OA to ${destination.toUpperCase()}? Actual CPF transfers are irreversible. Keep enough OA for housing and verify your eligible limit with CPF Board.`)) return;
+  p.oa = CPF.cents(p.oa - amount);
+  p[destination] = CPF.cents(p[destination] + amount);
+  state.cpf = p;
   saveState();
   syncInputsDOM();
   updateCalculations();
-  showToastNotification(`🔄 Transferred ${formatMoney(amount)} from OA (2.50%) to SA (4.08%)! Compound yield permanently boosted by +1.58% p.a.!`);
+  showToastNotification(`Simulated ${formatMoney(amount)} OA → ${destination.toUpperCase()}. Net worth is unchanged; future rates are not guaranteed.`);
 }
 
 // Calculate and update the Expense & Debt Advisor view
@@ -1600,6 +1604,10 @@ function run30YearSimulation(
   let sa = startSa;
   let ma = startMa;
   let ra = startRa;
+  let primary = CPF.closeSA({ ...state.cpf, oa, sa, ma, ra });
+  const primaryCaps = CPF.limits(primary);
+  primary.bhs = primaryCaps.bhs;
+  primary.frs = primaryCaps.frs;
 
   const currentSalary = state.cpf.salary;
   const savingsRate = state.sim.savingsRate / 100;
@@ -1607,7 +1615,7 @@ function run30YearSimulation(
   const salaryGrowth = state.sim.salaryGrowth / 100;
   const propGrowth = state.sim.propGrowth / 100;
   const targetGoal = state.sim.goal;
-  const targetRetireAge = state.sim.retireAge;
+  const targetRetireAge = Math.max(startAge, Math.min(100, state.sim.retireAge));
 
   let dataPoints = [];
   let goalReachedAge = null;
@@ -1619,22 +1627,16 @@ function run30YearSimulation(
   // Track household members local accounts state
   let hMembers = [];
   if (state.household && state.household.enabled && state.household.members) {
-    hMembers = state.household.members.map(m => ({
-      id: m.id,
-      relation: m.relation,
-      name: m.name,
-      age: Number(m.age) || 30,
-      salary: Number(m.salary) || 0,
-      bankBalance: Number(m.bankBalance) || 0,
-      oa: Number(m.oa) || 0,
-      sa: Number(m.sa) || 0,
-      ma: Number(m.ma) || 0,
-      ra: Number(m.ra) || 0
-    }));
+    hMembers = state.household.members.map(m => {
+      const p = CPF.closeSA(m);
+      const cap = CPF.limits(p);
+      return { ...p, bhs: cap.bhs, frs: cap.frs, bankBalance: CPF.money(m.bankBalance),
+        initialAge: p.age, initialSalary: p.salary, initialBonus: p.bonus };
+    });
   }
 
   // Let's model year-by-year until age 85
-  for (let year = 0; age <= 85; year++, age++) {
+  for (let year = 0; age <= Math.max(85, startAge, targetRetireAge); year++, age++) {
     // 1. Calculate assets & liabilities at the start of this year
     let cpfTotal = oa + sa + ma + ra;
     let memberBankTotal = 0;
@@ -1679,20 +1681,14 @@ function run30YearSimulation(
 
     // --- TRANSITIONS TO NEXT YEAR ---
     // Salary adjustment
-    let yearSalary = currentSalary * Math.pow(1 + salaryGrowth, year);
-    let cappedOW = Math.min(8000, yearSalary); // OW cap
-
-    // CPF Contributions during the year for Primary User
-    let rates = getCpfAllocations(age);
-    let annualTotalCPFContrib = cappedOW * (rates.total / 100) * 12;
-    
-    // Allocate to CPF accounts
-    let oaAdd = annualTotalCPFContrib * rates.oa;
-    let saAdd = annualTotalCPFContrib * rates.sa;
-    let maAdd = annualTotalCPFContrib * rates.ma;
+    const working = age < state.sim.retireAge;
+    const yearSalary = working ? currentSalary * Math.pow(1 + salaryGrowth, year) : 0;
+    primary.salary = yearSalary;
+    primary.bonus = working ? state.cpf.bonus * Math.pow(1 + salaryGrowth, year) : 0;
+    const pay = CPF.annual(primary);
 
     // Apply monthly savings rate (flow from salary)
-    let annualLiquidSavings = (yearSalary * 12) * savingsRate;
+    let annualLiquidSavings = Math.max(0, yearSalary * 12 + primary.bonus - pay.employee) * savingsRate;
 
     // Growth of liquid investments
     investments = investments * (1 + returnRate) + annualLiquidSavings;
@@ -1720,105 +1716,16 @@ function run30YearSimulation(
     }
 
     // Process each Household Member Transition
-    for (let m of hMembers) {
-      let mAge = m.age + year;
-      if (mAge > 85) continue; // Limit modeling to age 85
-      
-      let mYearSalary = m.salary * Math.pow(1 + salaryGrowth, year);
-      let mAnnualSavings = (mYearSalary * 12) * savingsRate;
-
-      // Add member savings directly to the household investment portfolio
-      investments += mAnnualSavings;
-      m.bankBalance = m.bankBalance * 1.015; // standard bank interest for cash hold
-
-      if (m.salary > 0) {
-        let mCappedOW = Math.min(8000, mYearSalary);
-        let mRates = getCpfAllocations(mAge);
-        let mAnnualCpfContrib = mCappedOW * (mRates.total / 100) * 12;
-
-        let mOaAdd = mAnnualCpfContrib * mRates.oa;
-        let mSaAdd = mAnnualCpfContrib * mRates.sa;
-        let mMaAdd = mAnnualCpfContrib * mRates.ma;
-
-        let mExtraInt = calcCpfExtraInterest(m.oa, m.sa, m.ma);
-        m.oa = m.oa * 1.025 + mOaAdd + mExtraInt.oa;
-        m.sa = m.sa * 1.0408 + mSaAdd;
-        m.ma = m.ma * 1.0408 + mMaAdd + mExtraInt.saMa;
-
-        const bhsCap = 71500;
-        if (m.ma > bhsCap) {
-          let mOverflow = m.ma - bhsCap;
-          m.ma = bhsCap;
-          if (mAge < 55) {
-            m.sa += mOverflow;
-          } else {
-            m.oa += mOverflow;
-          }
-        }
-
-        if (mAge === 54) {
-          const frs = 205800;
-          let mTransferFromSa = Math.min(m.sa, frs);
-          m.sa -= mTransferFromSa;
-          let mTransferFromOa = Math.min(m.oa, frs - mTransferFromSa);
-          m.oa -= mTransferFromOa;
-          m.ra = mTransferFromSa + mTransferFromOa;
-        }
-
-        if (m.ra > 0) {
-          m.ra = m.ra * 1.0408;
-        }
-      } else {
-        // Compound dependants' existing accounts without active contributions
-        let mExtraInt = calcCpfExtraInterest(m.oa, m.sa, m.ma);
-        m.oa = m.oa * 1.025 + mExtraInt.oa;
-        m.sa = m.sa * 1.0408;
-        m.ma = m.ma * 1.0408 + mExtraInt.saMa;
-
-        if (mAge === 54) {
-          const frs = 205800;
-          let mTransferFromSa = Math.min(m.sa, frs);
-          m.sa -= mTransferFromSa;
-          let mTransferFromOa = Math.min(m.oa, frs - mTransferFromSa);
-          m.oa -= mTransferFromOa;
-          m.ra = mTransferFromSa + mTransferFromOa;
-        }
-
-        if (m.ra > 0) {
-          m.ra = m.ra * 1.0408;
-        }
-      }
-    }
-
-    // CPF Interest Calculation at year-end for Primary User
-    let extraInt = calcCpfExtraInterest(oa, sa, ma);
-    
-    oa = oa * 1.025 + oaAdd + extraInt.oa;
-    sa = sa * 1.0408 + saAdd;
-    ma = ma * 1.0408 + maAdd + extraInt.saMa;
-
-    const bhsCap = 71500;
-    if (ma > bhsCap) {
-      let overflow = ma - bhsCap;
-      ma = bhsCap;
-      if (age < 55) {
-        sa += overflow;
-      } else {
-        oa += overflow;
-      }
-    }
-
-    if (age === 54) {
-      const frs = 205800;
-      let transferFromSa = Math.min(sa, frs);
-      sa -= transferFromSa;
-      let transferFromOa = Math.min(oa, frs - transferFromSa);
-      oa -= transferFromOa;
-      ra = transferFromSa + transferFromOa;
-    }
-    if (ra > 0) {
-      ra = ra * 1.0408;
-    }
+    hMembers = hMembers.map(m => {
+      const memberWorking = m.initialAge + year < state.sim.retireAge;
+      m.salary = memberWorking ? m.initialSalary * Math.pow(1 + salaryGrowth, year) : 0;
+      m.bonus = memberWorking ? m.initialBonus * Math.pow(1 + salaryGrowth, year) : 0;
+      const memberPay = CPF.annual(m);
+      investments += Math.max(0, m.salary * 12 + m.bonus - memberPay.employee) * savingsRate;
+      return { ...CPF.projectYear(m), bankBalance: m.bankBalance * 1.015 };
+    });
+    primary = CPF.projectYear(primary);
+    ({ oa, sa, ma, ra } = primary);
   }
 
   return {
@@ -1845,8 +1752,10 @@ function generatePlaybook(proj, liquidCash, dbsR, uobR, ocbcR, scbR) {
   }
 
   // Check CPF balances
-  if (state.cpf.oa > 40000) {
-    items.push(`<li><span class="bullet">➔</span> <div><strong>OA to SA Transfer:</strong> You have S$ ${Math.round(state.cpf.oa).toLocaleString()} in your Ordinary Account earning 2.5%. Transferring excess to Special Account earns <strong>4.08% p.a.</strong> (Warning: this is one-way).</div></li>`);
+  const cpfProfile = CPF.closeSA(CPF.profile(state.cpf));
+  if (cpfProfile.status === 'full' && cpfProfile.oa > 40000 && CPF.topUpRoom(cpfProfile) > 0) {
+    const destination = cpfProfile.age < 55 ? 'SA' : 'RA';
+    items.push(`<li><span class="bullet">➔</span> <div><strong>Consider OA to ${destination} transfer:</strong> Preserve housing and emergency liquidity first. Subject to CPF Board eligibility and transfer limits, an irreversible transfer to ${destination} uses a ${(CPF.rules.retirementInterest * 100).toFixed(0)}% planning interest assumption versus ${(CPF.rules.oaInterest * 100).toFixed(1)}% for OA; future rates are not guaranteed. SA closes at 55.</div></li>`);
   }
 
   // Check returns rate
@@ -2821,7 +2730,7 @@ function wrapInPersonaTone(rawAnalysis, persona) {
       return rawAnalysis;
     }
     intro = "📱 **[TikToker Jiabao (@gejiabao) - CPF & Wealth Strategist]** 🇸🇬\n\nHey guys, Jiabao here! Let's optimize your wealth building and compounding like a pro:\n\n";
-    outro = "\n\n🔥 **Jiabao's Action Rule**: Remember, CPF is Singapore's highest-yield risk-free compounding machine. Hit your BHS cap early, execute your January RSTU on Jan 1st, and let 4.08% work for you! Share this with someone who needs to hear it! 🚀📱";
+    outro = "\n\n**CPF planning note**: Preserve liquidity before irreversible top-ups or transfers. The model assumes 4% for SA/MA/RA, not a guaranteed future rate. Confirm eligibility, relief and retirement options with CPF Board.";
   } else if (persona === 'coach') {
     intro = "🌟 **[Wealth Coach - Sarah]** 🌟\n\nHey there! I am so excited to look at your financial pulse today! Let's check out your numbers and celebrate your progress! 🎉\n\n";
     body = body
@@ -2845,137 +2754,69 @@ function wrapInPersonaTone(rawAnalysis, persona) {
 // TikToker Jiabao CPF Optimization & Compounding Rules Engine
 function analyzeCpfJiabao(query) {
   const q = (query || "").toLowerCase();
-  const age = state.cpf.age || 28;
-  const sal = state.cpf.salary || 6200;
-  const oa = state.cpf.oa || 0;
-  const sa = state.cpf.sa || 0;
-  const ma = state.cpf.ma || 0;
-  const ra = state.cpf.ra || 0;
-  const totalCpf = oa + sa + ma + ra;
+  const p = CPF.closeSA(CPF.profile(state.cpf));
+  const rules = CPF.rules;
+  const limits = CPF.limits(p);
+  const pay = CPF.annual(p);
+  const interest = CPF.interest(p);
+  const money = n => `S$ ${n.toLocaleString('en-SG', { maximumFractionDigits: 2 })}`;
+  const destination = p.age < 55 ? 'SA' : 'RA';
+  const notice = `\n\n${cpfNotice(p)}`;
+  const assumptions = `Planning interest: OA ${(rules.oaInterest * 100).toFixed(1)}%; SA/MA/RA ${(rules.retirementInterest * 100).toFixed(0)}% p.a. Future rates are not guaranteed.`;
+  const relief = 'Cash top-ups are irreversible. Eligible cash top-ups may qualify for up to S$ 8,000 self plus S$ 8,000 family tax relief each year, shared across MediSave and retirement top-ups, within the overall S$ 80,000 personal relief cap. Recipient, FRS and other eligibility conditions apply; relief is not guaranteed and OA transfers do not qualify.';
 
-  const BHS = 75000;
-  const FRS = 213000;
-  const ERS = 426000;
+  if (/overflow|bhs|medisave/.test(q)) {
+    return `**MediSave and overflow**
 
-  const rates = getCpfAllocations(age);
-  const monthlyContrib = Math.min(8000, sal) * (rates.total / 100);
-  const monthlyMa = monthlyContrib * rates.ma;
+- 2026 BHS: ${money(rules.bhs)}. It freezes at your age-65 cohort level; your modeled BHS is ${money(limits.bhs)}.
+- MA: ${money(p.ma)}; remaining BHS room: ${money(Math.max(0, limits.bhs - p.ma))}.
+- Amounts above BHS flow to ${destination} up to the applicable FRS (${money(limits.frs)}), then OA; they do not always flow to SA. At 55, SA closes and retirement contributions go to RA up to FRS, then OA.
+- ${assumptions}
 
-  // First $60k Bonus Interest Breakdown
-  const oaBonus = Math.min(20000, oa);
-  const samaBonus = Math.min(60000 - oaBonus, sa + ma + ra);
-  const totalBonusPool = oaBonus + samaBonus;
-  const bonusCashYear = totalBonusPool * 0.01;
-
-  if (q.includes('overflow') || q.includes('bhs') || q.includes('medisave')) {
-    const maGap = Math.max(0, BHS - ma);
-    return `🌊 **[Jiabao's MediSave to BHS Overflow Engine]** 🇸🇬
-
-🔥 **The BHS Secret**: The 2026 Basic Healthcare Sum (BHS) is **S$ 75,000**. Once your MediSave reaches this ceiling, your MediSave stops taking mandatory contributions.
-
-📊 **Your Current Numbers**:
-* **Current MediSave (MA)**: S$ ${ma.toLocaleString()} (${((ma / BHS) * 100).toFixed(1)}% of BHS)
-* **Gap to Cap BHS**: ${maGap > 0 ? `S$ ${maGap.toLocaleString()} remaining` : `🎉 ALREADY CAPPED AT BHS!`}
-* **Mandatory Monthly MA Inflow**: S$ ${Math.round(monthlyMa).toLocaleString()}/mo
-
-🚀 **The Compounding Shift**:
-${maGap === 0 ? `* **ACTIVE**: Your monthly S$ ${Math.round(monthlyMa).toLocaleString()} MA contribution and 4.08% interest are **automatically overflowing directly into your Special Account (SA)** at 4.08% p.a. guaranteed!` : `* If you top up the remaining S$ ${maGap.toLocaleString()} to cap BHS, your future **S$ ${Math.round(monthlyMa).toLocaleString()}/month** and annual **4.08% interest** will bypass MA and flow straight into SA to turbocharge your retirement compounding!`}
-
-💡 **Jiabao's Pro Tip**: MediSave top-ups also qualify for personal income tax relief (up to your BHS cap)!
-
-🔥 **Jiabao's Action Rule**: Hit your BHS cap as early in your 20s or 30s as possible so every monthly dollar after that is working for your retirement in SA! 🚀📱`;
+${relief}${notice}`;
   }
 
-  if (q.includes('january') || q.includes('rstu') || q.includes('december') || q.includes('timing')) {
-    return `📅 **[Jiabao's January RSTU Top-Up Multiplier]** 🇸🇬
+  if (/january|rstu|december|timing|top.?up|tax relief|transfer/.test(q)) {
+    return `**Retirement top-ups and timing**
 
-🔥 **The Timing Hack**: CPF calculates interest on your lowest monthly balance, compounding monthly and crediting on 31 Dec.
+- Your modeled ${destination} top-up room is ${money(CPF.topUpRoom(p))}; verify actual CPF Board eligibility before acting. The 2026 FRS is ${money(rules.frs)} and ERS is ${money(rules.ers)}. RA top-ups above the applicable FRS do not receive tax relief.
+- Interest starts in the month after receipt and is credited annually, not compounded monthly. An eligible S$ 8,000 January top-up earns 11 months of base interest in its first year: ${money(8000 * rules.retirementInterest * 11 / 12)} at the 4% assumption. December earns zero months that year; extra interest is excluded.
+- Preserve cash and housing liquidity before an irreversible top-up or OA transfer to ${destination}.
 
-📊 **Comparing S$ 8,000 Top-Up in Jan vs Dec**:
-* ❄️ **December Top-Up**: Earns only **1 month** of interest = **S$ 27.20**
-* ☀️ **January Top-Up**: Earns a full **12 months** of 4.08% interest = **S$ 326.40**
-* 💰 **Net Free Return Difference**: **+S$ 299.20** pure extra government interest simply for topping up in January!
-
-📈 **Tax Relief Stacking**:
-* **Personal SA Top-Up**: Up to **S$ 8,000 / yr** tax deduction
-* **Loved Ones Top-Up (Parents/Spouse/Siblings)**: Additional **S$ 8,000 / yr** tax deduction
-* **Total Annual Tax Shield**: Up to **S$ 16,000 / yr**!
-
-💡 **Jiabao's Action Rule**: Set a recurring calendar reminder on **1 January every year** to execute your RSTU cash top-up first thing! 🚀📱`;
+${relief}${notice}`;
   }
 
-  if (q.includes('life') || q.includes('defer') || q.includes('65') || q.includes('70') || q.includes('payout')) {
-    return `👵 **[Jiabao's CPF LIFE Strategy: Age 65 vs 70 Deferment]** 🇸🇬
+  if (/life|defer|payout|\b65\b|\b70\b/.test(q)) {
+    return `**CPF LIFE planning**
 
-🔥 **The +35% Lifetime Boost**: You can start CPF LIFE anytime between age 65 and 70. For every year you defer, your monthly payout increases by **~7% permanently (up to +35% higher for the rest of your life!)**.
+Eligible members can generally start payouts between ages 65 and 70. Deferral can increase monthly payouts but requires other funds for living costs. Compare plans, start ages and bequest trade-offs using the official CPF Board CPF LIFE estimator; this dashboard does not calculate or guarantee a personalized payout.
 
-📊 **Payout Comparison Matrix (Standard Plan)**:
-* 🥉 **BRS (S$ 106,500)**: ~S$ 850/mo @ 65 ➔ **~S$ 1,150/mo @ 70**
-* 🥈 **FRS (S$ 213,000)**: ~S$ 1,650/mo @ 65 ➔ **~S$ 2,230/mo @ 70**
-* 🥇 **ERS (S$ 426,000 - 4x BRS)**: ~S$ 3,300/mo @ 65 ➔ **~S$ 4,450/mo @ 70**
-
-🛡️ **Which Plan Should You Pick?**:
-1. **Standard Plan (Default / Most Popular)**: Highest monthly payout throughout life.
-2. **Escalating Plan**: Starts ~20% lower but grows by 2% every single year to beat inflation.
-3. **Basic Plan**: Lower monthly payout, leaves maximum legacy/bequest to children.
-
-💡 **Jiabao's Recommendation**: If you have sufficient personal savings or side income at age 65, defer CPF LIFE to age 70 to lock in the **maximum S$ 4,450/month guaranteed lifelong pension**! 🚀📱`;
+Your modeled RA is ${money(p.ra)}. The 2026 FRS is ${money(rules.frs)} and ERS is ${money(rules.ers)}; these are savings reference amounts, not fixed payout promises.${notice}`;
   }
 
-  if (q.includes('housing') || q.includes('property') || q.includes('accrued') || q.includes('trap') || q.includes('mortgage')) {
-    const propOa = 120000;
-    const accrued10 = propOa * (Math.pow(1.025, 10) - 1);
-    return `🏠 **[Jiabao's CPF Accrued Interest Housing Breakdown]** 🇸🇬
+  if (/housing|property|accrued|trap|mortgage/.test(q)) {
+    return `**CPF housing refund**
 
-⚠️ **The Hidden Opportunity Cost**: When you use CPF OA for your downpayment and monthly mortgage, CPF Board charges you **2.50% compounded annual interest** on the amount withdrawn.
+CPF used for housing plus accrued interest is refunded to your own CPF when you sell; it is not a debt or interest paid to CPF Board. Accrued interest represents the OA interest forgone (modeled at ${(rules.oaInterest * 100).toFixed(1)}%).
 
-📊 **The Reality Check (Example on S$ 120,000 OA used)**:
-* **Original OA Principal Used**: S$ ${propOa.toLocaleString()}
-* **10-Year Compounded Accrued Interest**: S$ ${Math.round(accrued10).toLocaleString()}
-* **Total Refund Required Upon Selling Property**: **S$ ${Math.round(propOa + accrued10).toLocaleString()}** (Refunded directly back into your CPF OA).
-
-💡 **Jiabao's Strategy**:
-* If your property appreciation beats 2.5% p.a., you still build net worth.
-* But if your house price stagnates, you risk getting **$0 cash proceeds** upon selling because all proceeds must return to CPF OA.
-* **Pro Hack**: Where feasible, service part of your mortgage in cash, and leave OA to earn guaranteed 2.5% or transfer to SA at 4.08%! 🚀📱`;
+For a sale at market value, the refund is generally limited to available net sale proceeds after the outstanding housing loan, and you generally do not need to cover a CPF refund shortfall in cash. This can reduce cash proceeds; it is separate from any mortgage shortfall. Confirm your refund and age-55 retirement requirements with CPF Board before selling.${notice}`;
   }
 
-  // Complete Audit (Default)
-  const oaTransferGain20 = oa * (Math.pow(1.0408, 20) - Math.pow(1.025, 20));
-  return `🇸🇬 **[TikToker Jiabao (@gejiabao) - Complete CPF Mastery Audit]**
+  return `**CPF planning overview — age ${p.age}**
 
-Hey guys, Jiabao here! Let's do a full deep-dive into your CPF balances (Age ${age}):
+- Modeled balances: OA ${money(p.oa)}, SA ${money(p.sa)}, MA ${money(p.ma)}, RA ${money(p.ra)}.
+- ${p.status === 'full' ? `Monthly employee CPF ${money(pay.monthly.employee)}; employer CPF ${money(pay.monthly.employer)}. Annual total including eligible bonus: ${money(pay.total)}.` : p.status === 'unsupported' ? 'Unsupported contribution status: no contributions estimated. Use the CPF Board calculator.' : 'Foreign employee: no mandatory CPF contributions modeled.'}
+- OW ceiling: ${money(rules.owCeiling)}/month. AW room is ${money(rules.annualWageCeiling)} minus 12 × capped monthly OW: ${money(pay.awCeiling)}; modeled eligible bonus ${money(pay.eligibleBonus)}. This is not an extra standalone S$ 102,000 bonus cap.
+- ${assumptions} Extra interest on current unchanged balances: ${money(interest.extra)}/year. The first S$ 60,000 combined earns an extra 1%; at 55+, the first S$ 30,000 earns another 1% (up to S$ 900/year total extra interest). RA counts; only S$ 20,000 OA counts.
+- SA closes at 55: SA moves to RA up to applicable FRS, then OA; subsequent retirement contributions follow RA-to-FRS then OA. Your modeled FRS is ${money(limits.frs)}; 2026 FRS ${money(rules.frs)}, ERS ${money(rules.ers)}.
+- Your BHS is ${money(limits.bhs)} (2026: ${money(rules.bhs)}, frozen by cohort at 65). Excess MA goes to ${destination} up to FRS, then OA.
 
-💰 **Your Current CPF Capital**: S$ ${totalCpf.toLocaleString()}
-* **OA (2.50%)**: S$ ${oa.toLocaleString()}
-* **SA (4.08%)**: S$ ${sa.toLocaleString()}
-* **MA (4.08%)**: S$ ${ma.toLocaleString()} ${ma >= BHS ? '*(Capped at BHS! 🎉)*' : `*(S$ ${(BHS - ma).toLocaleString()} to BHS)*`}
-
-🔥 **Jiabao's 4-Step Optimization Playbook for You**:
-
-1. **🛡️ Capture 100% of the First $60k Bonus Pool**:
-   - You currently have **S$ ${totalBonusPool.toLocaleString()} / S$ 60,000** qualifying for the extra 1% p.a. grant.
-   - Annual free extra government interest: **S$ ${Math.round(bonusCashYear).toLocaleString()}/year**.
-
-2. **🌊 MediSave (MA) to BHS Overflow Strategy**:
-   - 2026 BHS is **S$ 75,000**. ${ma >= BHS ? `Your MA is capped! Your monthly S$ ${Math.round(monthlyMa).toLocaleString()}/mo is overflowing straight into SA at 4.08%!` : `Top up the remaining S$ ${(BHS - ma).toLocaleString()} to trigger automatic 4.08% SA overflow on your monthly CPF contributions.`}
-
-3. **📅 The January RSTU Timing Hack**:
-   - Don't wait until December! Perform your **S$ 8,000 cash top-up in January** to capture **11 extra months of compounding (+S$ 299.20/yr free cash)** + up to **S$ 16,000 tax relief** (self + loved ones).
-
-4. **📈 OA-to-SA One-Way Compounding Multiplier**:
-   - If your housing is settled, transferring your S$ ${oa.toLocaleString()} OA balance to SA unlocks an extra **+S$ ${Math.round(oaTransferGain20).toLocaleString()}** in pure compound interest over 20 years!
-
-5. **👵 CPF LIFE Deferment to Age 70**:
-   - Deferring your CPF LIFE payout from age 65 to age 70 boosts your monthly payout by **+35% for life** (up to **S$ 4,450/month** at ERS)!
-
-🔥 **Jiabao's Action Rule**: Let your money work harder than you do in Singapore! Reach BHS early, top up in Jan, and enjoy the power of 4.08% compound interest! 🚀📱`;
+${relief}${notice}`;
 }
 
 // Budget Auditor (Local Rule Engine)
 function analyzeBudgetLocal() {
-  const cpfRates = getCpfAllocations(state.cpf.age);
-  const empCPF = Math.min(8000, state.cpf.salary) * (cpfRates.employee / 100);
+  const empCPF = CPF.contribution(state.cpf).employee;
   const netSalary = state.cpf.salary - empCPF;
 
   const essential = state.expense ? state.expense.essential : 1800;
@@ -3122,32 +2963,7 @@ function analyzeBanksLocal() {
 
 // CPF Auditor (Local Rule Engine)
 function analyzeCpfLocal() {
-  const age = state.cpf.age;
-  const sal = state.cpf.salary;
-  const oa = state.cpf.oa;
-  const sa = state.cpf.sa;
-  const ma = state.cpf.ma;
-  const ra = state.cpf.ra;
-
-  const rates = getCpfAllocations(age);
-  const monthlyContrib = Math.min(8000, sal) * (rates.total / 100);
-
-  let advice = `🇸🇬 **Singapore CPF Compounding Audit** (Age ${age}):
-* **Total Current CPF**: S$ ${(oa + sa + ma + ra).toLocaleString()}
-  - **Ordinary Account (OA)**: S$ ${oa.toLocaleString()} (Guaranteed **2.50%** p.a.)
-  - **Special Account (SA)**: S$ ${sa.toLocaleString()} (Guaranteed **4.08%** p.a.)
-  - **Medisave Account (MA)**: S$ ${ma.toLocaleString()} (Guaranteed **4.08%** p.a.)` + (age >= 55 ? `\n  - **Retirement Account (RA)**: S$ ${ra.toLocaleString()} (Guaranteed **4.08%** p.a.)` : '') + `\n
-* **Monthly Compounding Inflow**: S$ ${Math.round(monthlyContrib).toLocaleString()}/mo (Based on S$ ${Math.min(8000, sal).toLocaleString()} OW salary ceiling)\n\n`;
-
-  if (age < 55) {
-    advice += `💡 **OA-to-SA Transfer recommendation**: You have S$ ${oa.toLocaleString()} in your Ordinary Account. If you do not plan to purchase an HDB flat in the next 3-5 years, transferring OA to SA will permanently elevate your yield from **2.5% to 4.08% p.a.**, dramatically accelerating retirement compounding. *Note: OA-to-SA transfers are strictly one-way.* \n\n`;
-  }
-
-  advice += `📈 **CPF Cash Top-Ups (RSTU)**: Consider performing cash top-ups to your Special Account (SA) under the Retirement Sum Topping-Up Scheme. This gets you dollar-for-dollar tax relief up to **S$8,000 p.a.** while boosting SA compounding growth.
-
-⚠️ **Ordinary Wage Ceiling**: Your salary is S$ ${sal.toLocaleString()}. Note that employer/employee CPF contributions are strictly capped at the **S$8,000/mo** Ordinary Wage (OW) ceiling. Any bonus wages (Additional Wages) are subject to a separate annual cap of S$102,000.`;
-
-  return advice;
+  return analyzeCpfJiabao('');
 }
 
 // General Local Response
@@ -3285,7 +3101,7 @@ function generateGeminiResponse(userPrompt) {
 
   const systemContexts = {
     analyst: `You are Ahmad, an expert Pragmatic SG Financial Analyst. Your tone is highly professional, direct, objective, data-driven, and analytical. You are deeply knowledgeable about Singapore finance rules:
-- CPF rules: 2026 OW ceiling is S$8,000/mo. Contribution rate is 37% for <=55 (employee 20%, employer 17%). Ordinary Account (OA) yields 2.5%, Special Account (SA) / Medisave (MA) / Retirement Account (RA) yield 4.08%. Extra 1% on first S$60k (max $20k OA).
+- CPF planning model: ${JSON.stringify(CPF.rules)}. Use age-specific CPF rates and low-wage rules; unsupported statuses have no contributions estimated, not zero liability. For 12 identical OW months, AW room is max(0, annualWageCeiling - 12 * min(monthly salary, owCeiling)), not a separate S$102,000 bonus cap. SA closes at 55; retirement contributions go to RA up to the member's FRS, then OA. BHS freezes at age 65 by cohort; use CPF Board member-specific limits. Interest assumptions are 2.5% OA and 4% SA/MA/RA, not guaranteed future rates. Extra interest includes RA and at most S$20,000 OA: 1% on first S$60,000 plus another 1% on first S$30,000 at 55+ (maximum S$900/year). Top-ups are irreversible; conditional S$8,000 self plus S$8,000 family relief is shared across MA/RSTU within the overall S$80,000 cap, not guaranteed. January top-ups earn 11 months of first-year interest, December zero, with annual crediting. Use the official CPF LIFE estimator, never fixed personalized payout promises. Housing refunds return principal and accrued interest to the member's own CPF, not debt to CPF Board; market-value sales generally limit refunds to net proceeds without a cash CPF shortfall.
 - Bank accounts: Model UOB One (effective ~5.0% for first $100k with card spend & salary), OCBC 360, DBS Multiplier, SCB Bonus$aver. Caps are strictly S$100k.
 - Housing: Mortgage Servicing Ratio (MSR) cap is 30% of income. Total Debt Servicing Ratio (TDSR) cap is 55% of income.
 - Emergency Fund: Recommend 6 months of essentials (debts + living).
@@ -3349,12 +3165,20 @@ function renderHouseholdMembers() {
     return;
   }
 
+  const escapeAttribute = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[char]);
+  state.household.members = state.household.members.map((m, index) => ({
+    ...CPF.profile(m), bankBalance: CPF.money(m.bankBalance),
+    id: /^[a-zA-Z0-9_-]+$/.test(m.id) ? m.id : `member-${index}`,
+    relation: ['spouse', 'child', 'parent', 'other'].includes(m.relation) ? m.relation : 'other'
+  }));
   container.innerHTML = state.household.members.map(m => `
     <div class="card glass-card member-card" id="member-${m.id}">
       <div class="member-card-header">
         <div class="member-identity">
           <span class="member-badge bg-${m.relation}">${m.relation}</span>
-          <input type="text" class="member-name-input" value="${m.name}" onchange="updateMember('${m.id}', 'name', this.value)">
+          <input type="text" class="member-name-input" value="${escapeAttribute(m.name)}" onchange="updateMember('${m.id}', 'name', this.value)">
         </div>
         <button class="btn-delete-member" onclick="removeHouseholdMember('${m.id}')" title="Delete Member">✕</button>
       </div>
@@ -3366,6 +3190,25 @@ function renderHouseholdMembers() {
         <div class="input-group-small">
           <label>Monthly Salary (S$)</label>
           <input type="number" class="input-field-small" value="${m.salary}" min="0" onchange="updateMember('${m.id}', 'salary', this.value)">
+        </div>
+        <div class="input-group-small">
+          <label for="member-status-${m.id}">CPF status</label>
+          <select id="member-status-${m.id}" class="input-field-small" onchange="updateMember('${m.id}', 'status', this.value)">
+            <option value="full" ${m.status === 'full' ? 'selected' : ''}>Citizen / full-rate PR</option>
+            <option value="foreign" ${m.status === 'foreign' ? 'selected' : ''}>Foreign employee (no CPF)</option>
+            <option value="unsupported" ${m.status === 'unsupported' ? 'selected' : ''}>Other rates (not modeled)</option>
+          </select>
+        </div>
+        <div class="input-group-small">
+          <label for="member-bonus-${m.id}">Annual bonus (S$)</label>
+          <input id="member-bonus-${m.id}" type="number" class="input-field-small" value="${m.bonus}" min="0" onchange="updateMember('${m.id}', 'bonus', this.value)">
+        </div>
+        <div class="input-group-small">
+          <label for="member-timing-${m.id}">Rate timing</label>
+          <select id="member-timing-${m.id}" class="input-field-small" onchange="updateMember('${m.id}', 'ageTiming', this.value)">
+            <option value="after" ${m.ageTiming === 'after' ? 'selected' : ''}>After birthday month</option>
+            <option value="birthday" ${m.ageTiming === 'birthday' ? 'selected' : ''}>Birthday month</option>
+          </select>
         </div>
         <div class="input-group-small">
           <label>Bank Balance (S$)</label>
@@ -3383,6 +3226,18 @@ function renderHouseholdMembers() {
           <label>CPF MA (S$)</label>
           <input type="number" class="input-field-small" value="${m.ma}" min="0" onchange="updateMember('${m.id}', 'ma', this.value)">
         </div>
+        <div class="input-group-small">
+          <label for="member-ra-${m.id}">CPF RA (S$; age 55+)</label>
+          <input id="member-ra-${m.id}" type="number" class="input-field-small" value="${m.ra}" min="0" onchange="updateMember('${m.id}', 'ra', this.value)">
+        </div>
+        <div class="input-group-small">
+          <label for="member-bhs-${m.id}">BHS override (S$; 0 = automatic)</label>
+          <input id="member-bhs-${m.id}" type="number" class="input-field-small" value="${m.bhs}" min="0" onchange="updateMember('${m.id}', 'bhs', this.value)">
+        </div>
+        <div class="input-group-small">
+          <label for="member-frs-${m.id}">Age-55 FRS override (S$; 0 = automatic)</label>
+          <input id="member-frs-${m.id}" type="number" class="input-field-small" value="${m.frs}" min="0" onchange="updateMember('${m.id}', 'frs', this.value)">
+        </div>
       </div>
     </div>
   `).join('');
@@ -3390,12 +3245,13 @@ function renderHouseholdMembers() {
 
 function updateMember(id, field, value) {
   if (!state.household || !state.household.members) return;
+  if (!['name', 'status', 'ageTiming', 'age', 'salary', 'bonus', 'bankBalance', 'oa', 'sa', 'ma', 'ra', 'bhs', 'frs'].includes(field)) return;
   const member = state.household.members.find(m => m.id === id);
   if (member) {
-    if (field === 'name') {
+    if (['name', 'status', 'ageTiming'].includes(field)) {
       member.name = value;
     } else {
-      member[field] = Number(value) || 0;
+      member[field] = field === 'age' ? CPF.ageOf(value) : CPF.money(value);
     }
     updateCalculations();
     saveState();
@@ -4007,5 +3863,3 @@ function applyKidsModeState(isActive) {
   // Re-sync avatar & details
   syncSidebarProfileDetails();
 }
-
-
